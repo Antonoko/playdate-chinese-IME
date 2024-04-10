@@ -34,12 +34,12 @@ HALF_MASK_SPRITE:setZIndex(100)
 
 local DPAD_HINT_IMG <const> = gfx.imagetable.new("img/dpad_hint")
 local dpad_hint_sprite = gfx.sprite.new(DPAD_HINT_IMG[1])
-dpad_hint_sprite:moveTo(30,screenHeight-35)
+dpad_hint_sprite:moveTo(100,screenHeight-22)
 dpad_hint_sprite:add()
 
 local CAPS_SUB_IMG <const> = gfx.imagetable.new("img/keyboard_sub")
 local caps_sub_sprite = gfx.sprite.new(CAPS_SUB_IMG[1])
-caps_sub_sprite:moveTo(screenWidth-32,screenHeight-35)
+caps_sub_sprite:moveTo(300,screenHeight-22)
 caps_sub_sprite:add()
 
 local CAPS_IMG <const> = gfx.imagetable.new("img/keyboard_caps")
@@ -48,152 +48,192 @@ local CAP_SIZE <const> = {
     x = 32,
     y = 26,
 }
-local CAPS_MAP_SPRITE_ZH <const> = {
+local CAPS_MAP_ZH <const> = {
     {
         name = "Q",
         index = 1,
-        sprite = gfx.sprite.new(CAPS_IMG[1])
+        sprite = gfx.sprite.new(CAPS_IMG[1]),
+        type = "consonant",
     },
     {
         name = "W",
         index = 2,
-        sprite = gfx.sprite.new(CAPS_IMG[2])
+        sprite = gfx.sprite.new(CAPS_IMG[2]),
+        type = "consonant",
     },
     {
         name = "E",
         index = 3,
-        sprite = gfx.sprite.new(CAPS_IMG[3])
+        sprite = gfx.sprite.new(CAPS_IMG[3]),
+        type = "vowel",
     },
     {
         name = "R",
         index = 4,
-        sprite = gfx.sprite.new(CAPS_IMG[4])
+        sprite = gfx.sprite.new(CAPS_IMG[4]),
+        type = "consonant",
     },
     {
         name = "T",
         index = 5,
-        sprite = gfx.sprite.new(CAPS_IMG[5])
+        sprite = gfx.sprite.new(CAPS_IMG[5]),
+        type = "consonant",
     },
     {
         name = "Y",
         index = 6,
-        sprite = gfx.sprite.new(CAPS_IMG[6])
+        sprite = gfx.sprite.new(CAPS_IMG[6]),
+        type = "consonant",
     },
     {
         name = "U",
         index = 7,
-        sprite = gfx.sprite.new(CAPS_IMG[7])
+        sprite = gfx.sprite.new(CAPS_IMG[7]),
+        type = "disable",
     },
     {
         name = "I",
         index = 8,
-        sprite = gfx.sprite.new(CAPS_IMG[8])
+        sprite = gfx.sprite.new(CAPS_IMG[8]),
+        type = "disable",
     },
     {
         name = "O",
         index = 9,
-        sprite = gfx.sprite.new(CAPS_IMG[9])
+        sprite = gfx.sprite.new(CAPS_IMG[9]),
+        type = "vowel",
     },
     {
         name = "P",
         index = 10,
-        sprite = gfx.sprite.new(CAPS_IMG[10])
+        sprite = gfx.sprite.new(CAPS_IMG[10]),
+        type = "consonant",
     },
     {
         name = "A",
         index = 11,
-        sprite = gfx.sprite.new(CAPS_IMG[11])
+        sprite = gfx.sprite.new(CAPS_IMG[11]),
+        type = "vowel",
     },
     {
         name = "S",
         index = 12,
-        sprite = gfx.sprite.new(CAPS_IMG[12])
+        sprite = gfx.sprite.new(CAPS_IMG[12]),
+        type = "consonant",
+    },
+    {
+        name = "SH",
+        index = 30,
+        sprite = gfx.sprite.new(CAPS_IMG[30]),
+        type = "consonant",
     },
     {
         name = "D",
         index = 13,
-        sprite = gfx.sprite.new(CAPS_IMG[13])
+        sprite = gfx.sprite.new(CAPS_IMG[13]),
+        type = "consonant",
     },
     {
         name = "F",
         index = 14,
-        sprite = gfx.sprite.new(CAPS_IMG[14])
+        sprite = gfx.sprite.new(CAPS_IMG[14]),
+        type = "consonant",
     },
     {
         name = "G",
         index = 15,
-        sprite = gfx.sprite.new(CAPS_IMG[15])
+        sprite = gfx.sprite.new(CAPS_IMG[15]),
+        type = "consonant",
     },
     {
         name = "H",
         index = 16,
-        sprite = gfx.sprite.new(CAPS_IMG[16])
+        sprite = gfx.sprite.new(CAPS_IMG[16]),
+        type = "consonant",
     },
     {
         name = "J",
         index = 17,
-        sprite = gfx.sprite.new(CAPS_IMG[17])
+        sprite = gfx.sprite.new(CAPS_IMG[17]),
+        type = "consonant",
     },
     {
         name = "K",
         index = 18,
-        sprite = gfx.sprite.new(CAPS_IMG[18])
+        sprite = gfx.sprite.new(CAPS_IMG[18]),
+        type = "consonant",
     },
     {
         name = "L",
         index = 19,
-        sprite = gfx.sprite.new(CAPS_IMG[19])
+        sprite = gfx.sprite.new(CAPS_IMG[19]),
+        type = "consonant",
     },
     {
         name = "Z",
         index = 20,
-        sprite = gfx.sprite.new(CAPS_IMG[20])
+        sprite = gfx.sprite.new(CAPS_IMG[20]),
+        type = "consonant",
+    },
+    {
+        name = "ZH",
+        index = 31,
+        sprite = gfx.sprite.new(CAPS_IMG[31]),
+        type = "consonant",
     },
     {
         name = "X",
         index = 21,
-        sprite = gfx.sprite.new(CAPS_IMG[21])
+        sprite = gfx.sprite.new(CAPS_IMG[21]),
+        type = "consonant",
     },
     {
         name = "C",
         index = 22,
-        sprite = gfx.sprite.new(CAPS_IMG[22])
+        sprite = gfx.sprite.new(CAPS_IMG[22]),
+        type = "consonant",
+    },
+    {
+        name = "CH",
+        index = 32,
+        sprite = gfx.sprite.new(CAPS_IMG[32]),
+        type = "consonant",
     },
     {
         name = "V",
         index = 23,
-        sprite = gfx.sprite.new(CAPS_IMG[23])
+        sprite = gfx.sprite.new(CAPS_IMG[23]),
+        type = "disable",
     },
     {
         name = "B",
         index = 24,
-        sprite = gfx.sprite.new(CAPS_IMG[24])
+        sprite = gfx.sprite.new(CAPS_IMG[24]),
+        type = "consonant",
     },
     {
         name = "N",
         index = 25,
-        sprite = gfx.sprite.new(CAPS_IMG[25])
+        sprite = gfx.sprite.new(CAPS_IMG[25]),
+        type = "consonant",
     },
     {
         name = "M",
         index = 26,
-        sprite = gfx.sprite.new(CAPS_IMG[26])
+        sprite = gfx.sprite.new(CAPS_IMG[26]),
+        type = "consonant",
     },
     {
-        name = "COMMA",
-        index = 27,
-        sprite = gfx.sprite.new(CAPS_IMG[27])
-    },
-    {
-        name = "PERIOD",
-        index = 28,
-        sprite = gfx.sprite.new(CAPS_IMG[28])
+        name = "SYMBOL",
+        index = 29,
+        sprite = gfx.sprite.new(CAPS_IMG[29]),
+        type = "symbol",
     },
 }
 local KEYBOARD_ZH_LAYOUT <const> = {
     10,
-    9,
-    9,
+    10,
+    10,
 }
 local VOWEL_LIST_OPTION <const> = json.decodeFile("data/zh_vowel.json")
 local ZH_WORD_LIST <const> = json.decodeFile("data/zh_word.json")
@@ -222,6 +262,10 @@ function tableHasKey(table, key)
     return table[key] ~= nil
 end
 
+function removeLastChar(str)
+    return str:sub(1, -2) --en for -2
+ end
+
 --------------------------------------------core
 
 function add_mask_between_keyboard_and_menu(active)
@@ -234,7 +278,7 @@ end
 
 function switch_keyboard()
     if keyboard_choose == "zh" then
-        keyboard_map = CAPS_MAP_SPRITE_ZH
+        keyboard_map = CAPS_MAP_ZH
     end
 end
 
@@ -243,10 +287,10 @@ function draw_keyboard_zh()
     local line_cap_cnt = 1
     local line_cnt = 1
 
-    for k, v in pairs(CAPS_MAP_SPRITE_ZH) do
+    for k, v in pairs(CAPS_MAP_ZH) do
         local pos = {
             x = (screenWidth - (CAP_SIZE.x * (KEYBOARD_ZH_LAYOUT[line_cnt] - 1)))/2 + (line_cap_cnt-1) * CAP_SIZE.x - 1 * (line_cap_cnt-1) ,
-            y = (screenHeight - (CAP_SIZE.y * (#KEYBOARD_ZH_LAYOUT - 1)))*(4/5) + (line_cnt-1) * CAP_SIZE.y - 1 * (line_cnt-1),
+            y = (screenHeight - (CAP_SIZE.y * (#KEYBOARD_ZH_LAYOUT - 1)))*(7/10) + (line_cnt-1) * CAP_SIZE.y - 1 * (line_cnt-1),
         }
         if v then
             v.sprite:moveTo(pos.x, pos.y)
@@ -493,6 +537,8 @@ STAGE["keyboard"] = function()
     elseif pd.buttonJustPressed(pd.kButtonRight) then
         vowel_selection = "i"
         arrow_btn_pressed()
+    elseif pd.buttonJustPressed(pd.kButtonB) then
+        text_area = removeLastChar(text_area)
     end
 
     function arrow_btn_pressed()
