@@ -1,0 +1,7 @@
+name=ChineseIME
+author=Haru
+description=Chinese IME for Playdate
+bundleID=com.haru.chineseime
+version=1.0
+buildNumber=1
+imagePath=img/launcher

@@ -11,21 +11,30 @@ local screenHeight <const> = playdate.display.getHeight()
 
 local keyboard_choose = "zh"
 local cap_selection = "a"
+local cap_selection_lazy_update = ""
 local vowel_selection = "a"
 local vowel_selection_result = "ni"
 local candidate_words = ""
-local text_area = "啊"
+local text_area = ""
+local text_area_lazy_update = ""
 local text_area_sprite = gfx.sprite.new()
 text_area_sprite:setCenter(0, 0)
-text_area_sprite:moveTo(20,20)
+text_area_sprite:moveTo(25,55)
 text_area_sprite:add()
 
 local cap_select_index = 1
+local cap_select_index_lazy_update = 1
 local crank_offset = 0
 local crankPosition_keyboard = 0
 local stage_manager = "keyboard"
 local STAGE = {}
 local keyboard_map
+
+local FEISHU_MENU_IMG <const> = gfx.image.new("img/feishu_menu")
+local FEISHU_MENU_SPRITE <const> = gfx.sprite.new(FEISHU_MENU_IMG)
+FEISHU_MENU_SPRITE:setCenter(0,0)
+FEISHU_MENU_SPRITE:moveTo(0, 0)
+FEISHU_MENU_SPRITE:add()
 
 local HALF_MASK_IMG <const> = gfx.image.new("img/white-mask2")
 local HALF_MASK_SPRITE <const> = gfx.sprite.new(HALF_MASK_IMG)
@@ -34,12 +43,14 @@ HALF_MASK_SPRITE:setZIndex(100)
 
 local DPAD_HINT_IMG <const> = gfx.imagetable.new("img/dpad_hint")
 local dpad_hint_sprite = gfx.sprite.new(DPAD_HINT_IMG[1])
-dpad_hint_sprite:moveTo(100,screenHeight-22)
+dpad_hint_sprite:setCenter(0,0)
+dpad_hint_sprite:moveTo(6,screenHeight-40)
 dpad_hint_sprite:add()
 
 local CAPS_SUB_IMG <const> = gfx.imagetable.new("img/keyboard_sub")
 local caps_sub_sprite = gfx.sprite.new(CAPS_SUB_IMG[1])
-caps_sub_sprite:moveTo(300,screenHeight-22)
+caps_sub_sprite:setCenter(0,0)
+caps_sub_sprite:moveTo(370,screenHeight-45)
 caps_sub_sprite:add()
 
 local CAPS_IMG <const> = gfx.imagetable.new("img/keyboard_caps")
@@ -65,7 +76,7 @@ local CAPS_MAP_ZH <const> = {
         name = "E",
         index = 3,
         sprite = gfx.sprite.new(CAPS_IMG[3]),
-        type = "vowel",
+        type = "consonant",
     },
     {
         name = "R",
@@ -101,7 +112,7 @@ local CAPS_MAP_ZH <const> = {
         name = "O",
         index = 9,
         sprite = gfx.sprite.new(CAPS_IMG[9]),
-        type = "vowel",
+        type = "consonant",
     },
     {
         name = "P",
@@ -113,7 +124,7 @@ local CAPS_MAP_ZH <const> = {
         name = "A",
         index = 11,
         sprite = gfx.sprite.new(CAPS_IMG[11]),
-        type = "vowel",
+        type = "consonant",
     },
     {
         name = "S",
@@ -251,6 +262,20 @@ local FONT = {
         font = gfx.font.new('font/SourceHanSansCN-M-24px')
     },
 }
+local SFX = {
+    selection = {
+        sound = pd.sound.fileplayer.new("sound/selection")
+    },
+    selection_reverse = {
+        sound = pd.sound.fileplayer.new("sound/selection-reverse")
+    },
+    denial = {
+        sound = pd.sound.fileplayer.new("sound/denial")
+    },
+    key = {
+        sound = pd.sound.fileplayer.new("sound/key")
+    }
+}
 
 --------------------------------------------utils
 
@@ -263,7 +288,7 @@ function tableHasKey(table, key)
 end
 
 function removeLastChar(str)
-    return str:sub(1, -2) --en for -2
+    return str:sub(1, -4) --en for -2
  end
 
 --------------------------------------------core
@@ -289,8 +314,8 @@ function draw_keyboard_zh()
 
     for k, v in pairs(CAPS_MAP_ZH) do
         local pos = {
-            x = (screenWidth - (CAP_SIZE.x * (KEYBOARD_ZH_LAYOUT[line_cnt] - 1)))/2 + (line_cap_cnt-1) * CAP_SIZE.x - 1 * (line_cap_cnt-1) ,
-            y = (screenHeight - (CAP_SIZE.y * (#KEYBOARD_ZH_LAYOUT - 1)))*(7/10) + (line_cnt-1) * CAP_SIZE.y - 1 * (line_cnt-1),
+            x = (screenWidth - (CAP_SIZE.x * (KEYBOARD_ZH_LAYOUT[line_cnt] - 1)))/2 + (line_cap_cnt-1) * CAP_SIZE.x - 1 * (line_cap_cnt-1) + 15,
+            y = (screenHeight - (CAP_SIZE.y * (#KEYBOARD_ZH_LAYOUT - 1)))*(0.94) + (line_cnt-1) * CAP_SIZE.y - 1 * (line_cnt-1),
         }
         if v then
             v.sprite:moveTo(pos.x, pos.y)
@@ -307,25 +332,38 @@ end
 
 
 function draw_keyboard_hint()
-    local image = gfx.image.new(43, 36)
-    gfx.pushContext(image)
-        if tableHasKey(VOWEL_LIST_OPTION, cap_selection) then
+    if (cap_selection ~= cap_selection_lazy_update) or (cap_select_index ~= cap_select_index_lazy_update) then
+        local image = gfx.image.new(43, 36)
+        gfx.pushContext(image)
             DPAD_HINT_IMG[1]:draw(0, 0)
-            if tableHasKey(VOWEL_LIST_OPTION[cap_selection], "a") then
-                DPAD_HINT_IMG[2]:draw(0, 0)
+            if tableHasKey(VOWEL_LIST_OPTION, cap_selection) then
+                if keyboard_map[cap_select_index].type == "consonant" then
+                        if tableHasKey(VOWEL_LIST_OPTION[cap_selection], "a") then
+                            DPAD_HINT_IMG[2]:draw(0, 0)
+                        end
+                        if tableHasKey(VOWEL_LIST_OPTION[cap_selection], "i") then
+                            DPAD_HINT_IMG[3]:draw(0, 0)
+                        end
+                        if tableHasKey(VOWEL_LIST_OPTION[cap_selection], "u") then
+                            DPAD_HINT_IMG[4]:draw(0, 0)
+                        end
+                        if tableHasKey(VOWEL_LIST_OPTION[cap_selection], "eov") then
+                            DPAD_HINT_IMG[5]:draw(0, 0)
+                        end
+                elseif keyboard_map[cap_select_index].type == "symbol" then
+                    DPAD_HINT_IMG[6]:draw(0, 0)
+                elseif keyboard_map[cap_select_index].type == "disable" then
+                    DPAD_HINT_IMG[7]:draw(0, 0)
+                end
+            else
+                DPAD_HINT_IMG[7]:draw(0, 0)
             end
-            if tableHasKey(VOWEL_LIST_OPTION[cap_selection], "i") then
-                DPAD_HINT_IMG[3]:draw(0, 0)
-            end
-            if tableHasKey(VOWEL_LIST_OPTION[cap_selection], "u") then
-                DPAD_HINT_IMG[4]:draw(0, 0)
-            end
-            if tableHasKey(VOWEL_LIST_OPTION[cap_selection], "eov") then
-                DPAD_HINT_IMG[5]:draw(0, 0)
-            end
-        end
-    gfx.popContext()
-    dpad_hint_sprite:setImage(image)
+        gfx.popContext()
+        dpad_hint_sprite:setImage(image)
+
+        cap_selection_lazy_update = cap_selection
+        cap_select_index_lazy_update = cap_select_index
+    end
 end
 
 
@@ -361,14 +399,19 @@ end
 
 local drawVowelMenu_init = false
 local drawVowelMenu_text_size, drawVowelMenu_gridview, drawVowelMenu_gridviewSprite
-function drawVowelMenu(initial_consonant, vowel)
+function drawVowelMenu(initial_consonant, vowel, enable_zh_font)
     if not check_if_consonant_and_vowel_in_table(initial_consonant, vowel) then
         return
     end
 
     if drawVowelMenu_init == false then
-        gfx.setFont(FONT["roobert"].font)
-        drawVowelMenu_text_size = gfx.getTextSize("M")
+        if enable_zh_font == true then
+            gfx.setFont(FONT["source_san"].font)
+            drawVowelMenu_text_size = gfx.getTextSize("我")
+        else
+            gfx.setFont(FONT["roobert"].font)
+            drawVowelMenu_text_size = gfx.getTextSize("M")
+        end
         drawVowelMenu_gridview = pd.ui.gridview.new(0, drawVowelMenu_text_size*1.5)
         drawVowelMenu_gridview:setNumberOfRows(#VOWEL_LIST_OPTION[initial_consonant][vowel])
         -- drawVowelMenu_gridview:setCellPadding(4,4,4,4)
@@ -391,9 +434,26 @@ function drawVowelMenu(initial_consonant, vowel)
         else
             gfx.setImageDrawMode(gfx.kDrawModeCopy)
         end
-        gfx.setFont(FONT["roobert"].font)
-        gfx.drawTextAligned(VOWEL_LIST_OPTION[initial_consonant][vowel][row], x+40, y)
+        if enable_zh_font == true then
+            gfx.setFont(FONT["source_san"].font)
+            gfx.drawTextAligned(VOWEL_LIST_OPTION[initial_consonant][vowel][row], x+40, y+5)       
+        else
+            gfx.setFont(FONT["roobert"].font)
+            gfx.drawTextAligned(VOWEL_LIST_OPTION[initial_consonant][vowel][row], x+40, y)
+        end
     end
+
+    local crankTicks = pd.getCrankTicks(10)
+    local _, selection_row, _ = drawVowelMenu_gridview:getSelection()
+    if (crankTicks == 1) and (selection_row < #VOWEL_LIST_OPTION[initial_consonant][vowel]) then
+        drawVowelMenu_gridview:selectNextRow(true)
+        SFX.selection.sound:play()
+    elseif (crankTicks == -1) and (selection_row > 1) then
+        drawVowelMenu_gridview:selectPreviousRow(true)
+        SFX.selection_reverse.sound:play()
+    end
+    _, selection_row, _ = drawVowelMenu_gridview:getSelection()
+    vowel_selection_result = VOWEL_LIST_OPTION[initial_consonant][vowel][selection_row]
 
     ----------------------draw
     if drawVowelMenu_gridview.needsDisplay then
@@ -401,6 +461,9 @@ function drawVowelMenu(initial_consonant, vowel)
             x=200,
             y=drawVowelMenu_text_size*1.5*#VOWEL_LIST_OPTION[initial_consonant][vowel],
         }
+        if pos.y > screenHeight then
+            pos["y"] = screenHeight - 10
+        end
         local gridviewImage = gfx.image.new(pos.x,pos.y)
         gfx.pushContext(gridviewImage)
             drawVowelMenu_gridview:drawInRect(0, 0, pos.x, pos.y)
@@ -409,22 +472,13 @@ function drawVowelMenu(initial_consonant, vowel)
         drawVowelMenu_gridviewSprite:moveTo(screenWidth*(1/4), screenHeight-pos.y-4)
     end
 
-    local crankTicks = pd.getCrankTicks(10)
-    if crankTicks == 1 then
-        drawVowelMenu_gridview:selectNextRow(true)
-    elseif crankTicks == -1 then
-        drawVowelMenu_gridview:selectPreviousRow(true)
-    end
-    local _, selection_row, _ = drawVowelMenu_gridview:getSelection()
-    vowel_selection_result = VOWEL_LIST_OPTION[initial_consonant][vowel][selection_row]
-
 end
 
 
 local drawZhWordMenu_init = false
 local drawZhWordMenu_text_size, drawZhWordMenu_gridview, drawZhWordMenu_gridviewSprite, drawZhWordMenu_selection_index
-function drawZhWordMenu(pingyin)
-    if not tableHasKey(ZH_WORD_LIST, pingyin) then
+function drawZhWordMenu(pinyin)
+    if not tableHasKey(ZH_WORD_LIST, pinyin) then
         return
     end
 
@@ -434,7 +488,7 @@ function drawZhWordMenu(pingyin)
         gfx.setFont(FONT["source_san"].font)
         drawZhWordMenu_text_size = gfx.getTextSize("我")
         drawZhWordMenu_gridview = pd.ui.gridview.new(drawZhWordMenu_text_size*1.5, drawZhWordMenu_text_size*1.5)
-        drawZhWordMenu_gridview:setNumberOfRows((#ZH_WORD_LIST[pingyin] // 10) + 1)
+        drawZhWordMenu_gridview:setNumberOfRows((#ZH_WORD_LIST[pinyin] // 10) + 1)
         drawZhWordMenu_gridview:setNumberOfColumns(10)
         drawZhWordMenu_gridview:setCellPadding(2,2,2,2)
         drawZhWordMenu_gridview:setSectionHeaderHeight(24)
@@ -451,7 +505,7 @@ function drawZhWordMenu(pingyin)
 
     function drawZhWordMenu_gridview:drawSectionHeader(section, x, y, width, height)
         gfx.setFont(FONT["roobert"].font)
-        gfx.drawTextAligned(pingyin, x+4, y+4, kTextAlignment.left)
+        gfx.drawTextAligned(pinyin, x+4, y+4, kTextAlignment.left)
     end
 
     function drawZhWordMenu_gridview:drawCell(section, row, column, selected, x, y, width, height)
@@ -462,27 +516,20 @@ function drawZhWordMenu(pingyin)
             gfx.setImageDrawMode(gfx.kDrawModeCopy)
         end
         gfx.setFont(FONT["source_san"].font)
-        if (((row-1)*10)+column) < #ZH_WORD_LIST[pingyin] + 1 then
-            gfx.drawTextAligned(ZH_WORD_LIST[pingyin][((row-1)*10)+column], x+(drawZhWordMenu_text_size*1.5-drawZhWordMenu_text_size)/2, y+(drawZhWordMenu_text_size*1.5-drawZhWordMenu_text_size)/2)
+        if (((row-1)*10)+column) < #ZH_WORD_LIST[pinyin] + 1 then
+            gfx.drawTextAligned(ZH_WORD_LIST[pinyin][((row-1)*10)+column], x+(drawZhWordMenu_text_size*1.5-drawZhWordMenu_text_size)/2, y+(drawZhWordMenu_text_size*1.5-drawZhWordMenu_text_size)/2)
         end
-    end
-
-    ----------------------draw
-    if drawZhWordMenu_gridview.needsDisplay then
-        local gridviewImage = gfx.image.new(400, 240)
-        gfx.pushContext(gridviewImage)
-            drawZhWordMenu_gridview:drawInRect(0, 0, 400, 240)
-        gfx.popContext()
-        drawZhWordMenu_gridviewSprite:setImage(gridviewImage)
     end
 
     local crankTicks = pd.getCrankTicks(20)
     if crankTicks == 1 then
-        if not (drawZhWordMenu_selection_index > #ZH_WORD_LIST[pingyin] -1) then
+        if not (drawZhWordMenu_selection_index > #ZH_WORD_LIST[pinyin] -1) then
             drawZhWordMenu_selection_index += 1
+            SFX.selection.sound:play()
         end
     elseif crankTicks == -1 and drawZhWordMenu_selection_index > 1 then
         drawZhWordMenu_selection_index -= 1
+        SFX.selection_reverse.sound:play()
     end
 
     local select_pos = {}
@@ -500,16 +547,29 @@ function drawZhWordMenu(pingyin)
     end
     drawZhWordMenu_gridview:setSelection(1, select_pos.row, select_pos.column)
 
-    candidate_words = ZH_WORD_LIST[pingyin][drawZhWordMenu_selection_index]
+    candidate_words = ZH_WORD_LIST[pinyin][drawZhWordMenu_selection_index]
+
+    ----------------------draw
+    if drawZhWordMenu_gridview.needsDisplay then
+        local gridviewImage = gfx.image.new(400, 240)
+        gfx.pushContext(gridviewImage)
+            drawZhWordMenu_gridview:drawInRect(0, 0, 400, 240)
+        gfx.popContext()
+        drawZhWordMenu_gridviewSprite:setImage(gridviewImage)
+    end
+
 end
 
 function updateTextAreaDisplay()
-    local textImage = gfx.image.new(400, 240)
-    gfx.pushContext(textImage)
-        gfx.setFont(FONT["source_san"].font)
-        gfx.drawText(text_area, 0, 0)
-    gfx.popContext()
-    text_area_sprite:setImage(textImage)
+    if text_area ~= text_area_lazy_update then
+        local textImage = gfx.image.new(350, 90)
+        gfx.pushContext(textImage)
+            gfx.setFont(FONT["source_san"].font)
+            gfx.drawTextInRect(text_area.."|", 0, 0, 350, 90)
+        gfx.popContext()
+        text_area_sprite:setImage(textImage)
+        text_area_lazy_update = text_area
+    end
 end
 
 --------------------------------------------stage
@@ -526,22 +586,50 @@ STAGE["keyboard"] = function()
     choose_cap(keyboard_map[cap_select_index].name)
 
     if pd.buttonJustPressed(pd.kButtonUp) then
-        vowel_selection = "a"
-        arrow_btn_pressed()
+        cap_type_state_switcher("u")
     elseif pd.buttonJustPressed(pd.kButtonDown) then
-        vowel_selection = "u"
-        arrow_btn_pressed()
+        cap_type_state_switcher("d")
     elseif pd.buttonJustPressed(pd.kButtonLeft) then
-        vowel_selection = "evo"
-        arrow_btn_pressed()
+        cap_type_state_switcher("l")
     elseif pd.buttonJustPressed(pd.kButtonRight) then
-        vowel_selection = "i"
-        arrow_btn_pressed()
+        cap_type_state_switcher("r")
     elseif pd.buttonJustPressed(pd.kButtonB) then
         text_area = removeLastChar(text_area)
+        SFX.key.sound:play()
     end
 
-    function arrow_btn_pressed()
+    function cap_type_state_switcher(direction)
+        if keyboard_map[cap_select_index].type == "consonant" then
+            if direction == "u" then
+                vowel_selection = "a"
+            elseif direction == "d" then
+                vowel_selection = "u"
+            elseif direction == "l" then
+                vowel_selection = "eov"
+            elseif direction == "r" then
+                vowel_selection = "i"
+            end
+            SFX.key.sound:play()
+            active_vowel_menu()
+        elseif keyboard_map[cap_select_index].type == "symbol" then
+            if direction == "u" then
+                text_area = text_area.."，"
+            elseif direction == "d" then
+                vowel_selection = "symbol"
+                active_vowel_menu()
+            elseif direction == "l" then
+                vowel_selection = "sentence"
+                active_vowel_menu()
+            elseif direction == "r" then
+                text_area = text_area.."。"
+            end
+            SFX.key.sound:play()
+        elseif keyboard_map[cap_select_index].type == "disable" then
+            SFX.denial.sound:play()
+        end
+    end
+
+    function active_vowel_menu()
         if check_if_consonant_and_vowel_in_table(cap_selection, vowel_selection) then
             stage_manager = "vowel_menu"
         end    
@@ -550,11 +638,19 @@ end
 
 
 STAGE["vowel_menu"] = function()
-    drawVowelMenu(cap_selection, vowel_selection)
+    local enable_zh_font_display = false
+    if cap_selection == "symbol" then
+        enable_zh_font_display = true
+    end
+    drawVowelMenu(cap_selection, vowel_selection, enable_zh_font_display)
 
     function exit_vowel_menu()
         if tableHasKey(ZH_WORD_LIST, vowel_selection_result) then
             stage_manager = "zh_word_menu"
+        elseif cap_selection == "symbol" then
+            text_area = text_area..vowel_selection_result
+            stage_manager = "keyboard"
+            add_mask_between_keyboard_and_menu(false)
         else
             stage_manager = "keyboard"
             add_mask_between_keyboard_and_menu(false)
@@ -562,9 +658,10 @@ STAGE["vowel_menu"] = function()
         drawVowelMenu_gridviewSprite:remove()
         drawVowelMenu_init = false
         crank_offset = math.abs(crankPosition_keyboard - pd.getCrankPosition())
+        SFX.key.sound:play()
     end
 
-    if pd.buttonJustPressed(pd.kButtonUp) or pd.buttonJustReleased(pd.kButtonDown) or pd.buttonJustReleased(pd.kButtonLeft) or pd.buttonJustReleased(pd.kButtonRight) then
+    if pd.buttonJustReleased(pd.kButtonUp) or pd.buttonJustReleased(pd.kButtonDown) or pd.buttonJustReleased(pd.kButtonLeft) or pd.buttonJustReleased(pd.kButtonRight) then
         exit_vowel_menu()
     end
 end
@@ -576,11 +673,14 @@ STAGE["zh_word_menu"] = function()
         drawZhWordMenu_init = false
         add_mask_between_keyboard_and_menu(false)
         crank_offset = math.abs(crankPosition_keyboard - pd.getCrankPosition())
+        SFX.key.sound:play()
     end
 
     drawZhWordMenu(vowel_selection_result)
-    if pd.buttonJustPressed(pd.kButtonUp) or pd.buttonJustReleased(pd.kButtonDown) or pd.buttonJustReleased(pd.kButtonLeft) or pd.buttonJustReleased(pd.kButtonRight) then
+    if pd.buttonJustPressed(pd.kButtonUp) or pd.buttonJustPressed(pd.kButtonDown) or pd.buttonJustPressed(pd.kButtonLeft) or pd.buttonJustPressed(pd.kButtonRight) then
         text_area = text_area..candidate_words
+        exit_zh_word_menu()
+    elseif pd.buttonJustPressed(pd.kButtonB) then
         exit_zh_word_menu()
     end
 end
