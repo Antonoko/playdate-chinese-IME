@@ -1,0 +1,146 @@
+{
+    "a":{
+        "a":["a"],
+        "i":["ai"],
+        "eov":["ao", "an", "ang"]
+    },
+    "b":{
+        "a":["ba", "ban", "bang", "bai", "bao"],
+        "i":["bi", "biao", "bian", "bie", "bin", "bing"],
+        "u":["bu"],
+        "eov":["bei", "ben", "beng", "bo"]
+    },
+    "c":{
+        "a":["ca", "can", "cang", "cai", "cao"],
+        "i":["ci"],
+        "u":["cu", "cuan", "cui", "cuo", "cun"],
+        "eov":["ce", "cen", "ceng", "cou", "cong"]
+    },
+    "ch":{
+        "a":["cha", "chan", "chang", "chai", "chao"],
+        "i":["chi"],
+        "u":["chu", "chua", "chuai", "chuan", "chuang", "chui", "chuo", "chun"],
+        "eov":["che", "chen", "cheng", "chou", "chong"]
+    },
+    "d":{
+        "a":["da", "dan", "dang", "dai", "dao"],
+        "i":["di", "diao", "dian", "diu", "die", "ding"],
+        "u":["du", "duan", "dui", "duo", "dun"],
+        "eov":["de", "dei", "deng", "dou", "dong"]
+    },
+    "e":{
+        "i":["ei"],
+        "eov":["e", "en", "er"]
+    },
+    "f":{
+        "a":["fa", "fan", "fang"],
+        "eov":["fei", "fen", "feng", "fo", "fou"]
+    },
+    "g":{
+        "a":["ga", "gan", "gang", "gai", "gao"],
+        "u":["gu", "gua", "guai", "guan", "guang", "gui", "guo", "gun"],
+        "eov":["ge", "gei", "gen", "geng", "gou", "gong"]
+    },
+    "h":{
+        "a":["ha", "han", "hang", "hai", "hao"],
+        "u":["hu", "hua", "huai", "huan", "huang", "hui", "huo", "hun"],
+        "eov":["he", "hei", "hen", "heng", "hou", "hong"]
+    },
+    "j":{
+        "i":["ji", "jia", "jiao", "jian", "jiang", "jiu", "jie", "jiong", "jin", "jing"],
+        "u":["ju", "juan", "jue", "jun"]
+    },
+    "k":{
+        "a":["ka", "kan", "kang", "kai", "kao"],
+        "u":["ku", "kua", "kuai", "kuan", "kuang", "kui", "kuo", "kun"],
+        "eov":["ke", "ken", "keng", "kou", "kong"]
+    },
+    "l":{
+        "a":["la", "lan", "lang", "lai", "lao"],
+        "i":["li", "lia", "liao", "lian", "liang", "liu", "liu", "lie", "lin", "ling"],
+        "u":["lu", "luan", "lue", "luo", "lun"],
+        "eov":["le", "lei", "leng", "lou", "long", "lv"]
+    },
+    "m":{
+        "a":["ma", "man", "mang", "mai", "mao"],
+        "i":["mi", "miao", "mian", "miu", "mie", "min", "ming"],
+        "u":["mu"],
+        "eov":["me", "mei", "men", "meng", "mo", "mou"]
+    },
+    "n":{
+        "a":["na", "nan", "nag", "nai", "nao"],
+        "i":["ni", "niao", "nian", "niang", "niu", "nie", "nin", "ning"],
+        "u":["nu", "nuan", "nue", "nuo", "nun"],
+        "eov":["ne", "nei", "nen", "neng", "nou", "nong", "nv"]
+    },
+    "o":{
+        "u":["ou"],
+        "eov":["o"]
+    },
+    "p":{
+        "a":["pa", "pan", "pang", "pai", "pao"],
+        "i":["pi", "piao", "pian", "pie", "pin", "ping"],
+        "u":["pu"],
+        "eov":["pei", "pen", "peng", "po", "pou"]
+    },
+    "q":{
+        "i":["qi", "qia", "qiao", "qian", "qiang", "qiu", "qie", "qiong", "qin", "qing"],
+        "u":["qu", "quan", "que", "qun"]
+    },
+    "r":{
+        "a":["ran", "rang", "rao"],
+        "i":["ri"],
+        "u":["ru", "ruan", "rui", "ruo", "run"],
+        "eov":["re", "ren", "reng", "rou", "rong"]
+    },
+    "s":{
+        "a":["sa", "san", "sang", "sai", "sao"],
+        "i":["si"],
+        "u":["su", "suan", "sui", "suo", "sun"],
+        "eov":["se", "sen", "seng", "sou", "song"]
+    },
+    "sh":{
+        "a":["sha", "shan", "shang", "shai", "shao"],
+        "i":["shi"],
+        "u":["shu", "shua", "shuai", "shuan", "shuang", "shui", "shuo", "shun"],
+        "eov":["she", "shen", "sheng", "shou"]
+    },
+    "t":{
+        "a":["ta", "tan", "tang", "tai", "tao"],
+        "i":["ti", "tiao", "tian", "tie", "ting"],
+        "u":["tu", "tuan", "tui", "tuo", "tun"],
+        "eov":["te", "teng", "tou", "tong"]
+    },
+    "w":{
+        "a":["wa", "wai", "wan", "wang"],
+        "u":["wu"],
+        "eov":["wei", "wen", "weng", "wo"]
+    },
+    "x":{
+        "i":["xi", "xia", "xiao", "xian", "xiang", "xiu", "xie", "xiong", "xin", "xing"],
+        "u":["xu", "xuan", "xue", "xun"]
+    },
+    "y":{
+        "a":["ya", "yao", "yan", "yang"],
+        "i":["yi", "yin", "ying"],
+        "u":["yu", "yuan", "yue", "yun"],
+        "eov":["ye", "yong", "you"]
+    },
+    "z":{
+        "a":["za", "zan", "zang", "zai", "zao"],
+        "i":["zi"],
+        "u":["zu", "zuan", "zui", "zuo", "zun"],
+        "eov":["ze", "zei", "zen", "zeng", "zou", "zong"]
+    },
+    "zh":{
+        "a":["zha", "zhan", "zhang", "zhai", "zhao"],
+        "i":["zhi"],
+        "u":["zhu", "zhua", "zhuai", "zhuan", "zhuang", "zhui", "zhuo", "zhun"],
+        "eov":["zhe", "zhei", "zhen", "zheng", "zhou", "zhong"]
+    },
+    "symbol":{
+        "sentence":["好的", "不行", "你好", "再见", "去你的吧", "谢谢", "不错", "支持", "反对"],
+        "symbol":["   ", "？", "！", "：", "；", "“", "”", "‘", "’", "（", "）", "《", "》", "【", "】", "＠", "＃", "￥", "％", "＆", "＊", "－", "＋", "＿"],
+        "symbol_en": [".", "?", "!", ":", ";", "'", "\"","(",")","<",">","[","]","{","}","@","#","$","%","^","&","*","-","+","\\","/","|","~"]
+    }
+}

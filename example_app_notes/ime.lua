@@ -35,26 +35,28 @@ local STAGE = {}
 local keyboard_map, keyboard_layout
 
 local ime_menu = playdate.getSystemMenu()
+local ime_is_running = false
+local ime_is_user_discard = false
 
-local HALF_MASK_IMG <const> = gfx.image.new("img/white-mask2")
+local HALF_MASK_IMG <const> = gfx.image.new("ime_src/img/white-mask2")
 local HALF_MASK_SPRITE <const> = gfx.sprite.new(HALF_MASK_IMG)
 HALF_MASK_SPRITE:moveTo(screenWidth/2, screenHeight/2)
 HALF_MASK_SPRITE:setZIndex(100)
 
-local DPAD_HINT_IMG <const> = gfx.imagetable.new("img/dpad_hint")
+local DPAD_HINT_IMG <const> = gfx.imagetable.new("ime_src/img/dpad_hint")
 local dpad_hint_sprite = gfx.sprite.new(DPAD_HINT_IMG[1])
 dpad_hint_sprite:setCenter(0,0)
 dpad_hint_sprite:moveTo(6,screenHeight-60)
 dpad_hint_sprite:add()
 
-local CAPS_SUB_IMG <const> = gfx.imagetable.new("img/keyboard_sub")
+local CAPS_SUB_IMG <const> = gfx.imagetable.new("ime_src/img/keyboard_sub")
 local caps_sub_sprite = gfx.sprite.new(CAPS_SUB_IMG[1])
 caps_sub_sprite:setCenter(0,0)
 caps_sub_sprite:moveTo(370,screenHeight-45)
 caps_sub_sprite:add()
 
-local CAPS_IMG <const> = gfx.imagetable.new("img/keyboard_caps")
-local CAPS_IMG_PRESS <const> = gfx.imagetable.new("img/keyboard_caps_press")
+local CAPS_IMG <const> = gfx.imagetable.new("ime_src/img/keyboard_caps")
+local CAPS_IMG_PRESS <const> = gfx.imagetable.new("ime_src/img/keyboard_caps_press")
 local CAP_SIZE <const> = {
     x = 32,
     y = 26,
@@ -427,38 +429,38 @@ local KEYBOARD_CONFIG_LIST <const> = {
         caps_sub_sprite_index = 2,
     },
 }
-local VOWEL_LIST_OPTION <const> = json.decodeFile("data/zh_vowel.json")
-local ZH_WORD_LIST <const> = json.decodeFile("data/zh_word.json")
+local VOWEL_LIST_OPTION <const> = json.decodeFile("ime_src/data/zh_vowel.json")
+local ZH_WORD_LIST <const> = json.decodeFile("ime_src/data/zh_word.json")
 local FONT = {
     roobert = {
         name = "roobert",
-        font = gfx.font.new('font/Roobert-11-Medium')
+        font = gfx.font.new('ime_src/font/Roobert-11-Medium')
     },
     fusion_pixel_12 = {
         name = "fusion-pixel-font-12px-proportional-zh_hans",
-        font = gfx.font.new('font/fusion-pixel-font-12px-proportional-zh_hans')
+        font = gfx.font.new('ime_src/font/fusion-pixel-font-12px-proportional-zh_hans')
     },
     source_san = {
         name = "SourceHanSansCN-M-24px",
-        font = gfx.font.new('font/SourceHanSansCN-M-24px')
+        font = gfx.font.new('ime_src/font/SourceHanSansCN-M-24px')
     },
     source_san_20 = {
         name = "SourceHanSansCN-M-20px",
-        font = gfx.font.new('font/SourceHanSansCN-M-20px')
+        font = gfx.font.new('ime_src/font/SourceHanSansCN-M-20px')
     },
 }
 local SFX = {
     selection = {
-        sound = pd.sound.fileplayer.new("sound/selection")
+        sound = pd.sound.fileplayer.new("ime_src/sound/selection")
     },
     selection_reverse = {
-        sound = pd.sound.fileplayer.new("sound/selection-reverse")
+        sound = pd.sound.fileplayer.new("ime_src/sound/selection-reverse")
     },
     denial = {
-        sound = pd.sound.fileplayer.new("sound/denial")
+        sound = pd.sound.fileplayer.new("ime_src/sound/denial")
     },
     key = {
-        sound = pd.sound.fileplayer.new("sound/key")
+        sound = pd.sound.fileplayer.new("ime_src/sound/key")
     }
 }
 
@@ -497,7 +499,7 @@ function draw_header(header_text, lang)
             img_table_index = 2
         },
     }
-    local HEADER_IMG <const> = gfx.imagetable.new("img/header_bg")
+    local HEADER_IMG <const> = gfx.imagetable.new("ime_src/img/header_bg")
     local image = gfx.image.new(400, 45)
     gfx.pushContext(image)
         HEADER_IMG[lang_config[lang].img_table_index]:draw(0, 0)
@@ -514,11 +516,15 @@ end
 
 function sidebar_option()
     local modeMenuItem, error = ime_menu:addMenuItem("Submit", function(value)
-        print("submitted")
+        print("Submit")
+        ime_exit()
     end)
     
     local modeMenuItem, error = ime_menu:addMenuItem("Discard", function(value)
         print("Discard")
+        text_area = ""
+        ime_is_user_discard = true
+        ime_exit()
     end)
 end
 
@@ -1031,20 +1037,39 @@ end
 
 --------------------------------------------
 
-function init()
-    draw_header("请输入", "zh")
+function ime_exit()
+    ime_menu:removeAllMenuItems()
+    gfx.sprite.removeAll()
+    ime_is_running = false
+end
+
+
+class('IME').extends()
+function IME:init(header_hint, ui_lang)
+    -- header_hint: "Input your text"
+    -- header_hint: "zh" / "en"
+	IME.super.init(self)
+end
+
+function IME:startRunning()
+    ime_is_running = true
+    ime_is_user_discard = false
+    draw_header(header_hint, ui_lang)
     sidebar_option()
     switch_keyboard()
     draw_keyboard()
 end
 
-
-function pd.update()
+function IME:update()
     STAGE[stage_manager]()
     updateTextAreaDisplay()
-    
-    gfx.sprite.update()
-    pd.timer.updateTimers()
+    return text_area, text_area_per_char_width
 end
 
-init()
+function IME:isRunning()
+    return ime_is_running
+end
+
+function IME:isUserDiscard()
+    return ime_is_user_discard
+end
