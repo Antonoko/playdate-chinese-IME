@@ -9,6 +9,8 @@ local gfx <const> = playdate.graphics
 local screenWidth <const> = playdate.display.getWidth()
 local screenHeight <const> = playdate.display.getHeight()
 
+local zindex_start_offset <const> = 1000
+
 local keyboard_choose = "zh"
 local keyboard_choose_lazy_update = ""
 local en_cap_lock = false
@@ -22,9 +24,6 @@ local text_area_per_char_width = {}
 local text_area = ""
 local text_area_lazy_update = "."
 local text_area_sprite = gfx.sprite.new()
-text_area_sprite:setCenter(0, 0)
-text_area_sprite:moveTo(25,55)
-text_area_sprite:add()
 
 local cap_select_index = 1
 local cap_select_index_lazy_update = 1
@@ -40,20 +39,12 @@ local ime_is_user_discard = false
 
 local HALF_MASK_IMG <const> = gfx.image.new("ime_src/img/white-mask2")
 local HALF_MASK_SPRITE <const> = gfx.sprite.new(HALF_MASK_IMG)
-HALF_MASK_SPRITE:moveTo(screenWidth/2, screenHeight/2)
-HALF_MASK_SPRITE:setZIndex(100)
 
 local DPAD_HINT_IMG <const> = gfx.imagetable.new("ime_src/img/dpad_hint")
 local dpad_hint_sprite = gfx.sprite.new(DPAD_HINT_IMG[1])
-dpad_hint_sprite:setCenter(0,0)
-dpad_hint_sprite:moveTo(6,screenHeight-60)
-dpad_hint_sprite:add()
 
 local CAPS_SUB_IMG <const> = gfx.imagetable.new("ime_src/img/keyboard_sub")
 local caps_sub_sprite = gfx.sprite.new(CAPS_SUB_IMG[1])
-caps_sub_sprite:setCenter(0,0)
-caps_sub_sprite:moveTo(370,screenHeight-45)
-caps_sub_sprite:add()
 
 local CAPS_IMG <const> = gfx.imagetable.new("ime_src/img/keyboard_caps")
 local CAPS_IMG_PRESS <const> = gfx.imagetable.new("ime_src/img/keyboard_caps_press")
@@ -505,11 +496,12 @@ function draw_header(header_text, lang)
         HEADER_IMG[lang_config[lang].img_table_index]:draw(0, 0)
         gfx.setFont(FONT["source_san_20"].font)
         gfx.setImageDrawMode(pd.graphics.kDrawModeFillWhite)
-        gfx.drawTextAligned(header_text, 14, 6)
+        gfx.drawTextAligned(header_text, 14, 7)
     gfx.popContext()
     local header_sprite = gfx.sprite.new(image)
     header_sprite:setCenter(0,0)
     header_sprite:moveTo(0, 0)
+    header_sprite:setZIndex(1+zindex_start_offset)
     header_sprite:add()
 end
 
@@ -564,6 +556,7 @@ end
 function draw_keyboard()
     local line_cap_cnt = 1
     local line_cnt = 1
+    local zindex_i = 0
 
     for k, v in pairs(keyboard_map) do
         local pos = {
@@ -572,6 +565,7 @@ function draw_keyboard()
         }
         if v then
             v.sprite:moveTo(pos.x, pos.y)
+            v.sprite:setZIndex(zindex_start_offset+zindex_i)
             v.sprite:add()
         end
         
@@ -580,6 +574,8 @@ function draw_keyboard()
             line_cap_cnt = 1
             line_cnt += 1
         end
+
+        zindex_i += 1
     end
 end
 
@@ -707,7 +703,7 @@ function drawVowelMenu(initial_consonant, vowel, enable_zh_font)
         drawVowelMenu_gridviewSprite = gfx.sprite.new()
         drawVowelMenu_gridviewSprite:setCenter(0,0)
         drawVowelMenu_gridviewSprite:moveTo(200, 120)
-        drawVowelMenu_gridviewSprite:setZIndex(200)
+        drawVowelMenu_gridviewSprite:setZIndex(200+zindex_start_offset)
         drawVowelMenu_gridviewSprite:add()
 
         add_mask_between_keyboard_and_menu(true)
@@ -783,7 +779,7 @@ function drawZhWordMenu(pinyin)
 
         drawZhWordMenu_gridviewSprite = gfx.sprite.new()
         drawZhWordMenu_gridviewSprite:moveTo(200, 120)
-        drawZhWordMenu_gridviewSprite:setZIndex(300)
+        drawZhWordMenu_gridviewSprite:setZIndex(300+zindex_start_offset)
         drawZhWordMenu_gridviewSprite:add()
 
         add_mask_between_keyboard_and_menu(true)
@@ -1045,10 +1041,17 @@ end
 
 
 class('IME').extends()
-function IME:init(header_hint, ui_lang, text_area_custom, text_area_per_char_width_custom)
+function IME:init()
     -- header_hint: "Input your text"
     -- header_hint: "zh" / "en"
 	IME.super.init(self)
+end
+
+function IME:startRunning(header_hint, ui_lang, text_area_custom, text_area_per_char_width_custom)
+    ime_is_running = true
+    ime_is_user_discard = false
+    ime_menu:removeAllMenuItems()
+
     if header_hint == nil then
         self.header_hint = "Text Input"
     else
@@ -1064,11 +1067,22 @@ function IME:init(header_hint, ui_lang, text_area_custom, text_area_per_char_wid
         text_area = text_area_custom
         text_area_per_char_width = text_area_per_char_width_custom
     end
-end
 
-function IME:startRunning()
-    ime_is_running = true
-    ime_is_user_discard = false
+    text_area_sprite:setCenter(0, 0)
+    text_area_sprite:moveTo(25,55)
+    text_area_sprite:setZIndex(40+zindex_start_offset)
+    text_area_sprite:add()
+    HALF_MASK_SPRITE:moveTo(screenWidth/2, screenHeight/2)
+    HALF_MASK_SPRITE:setZIndex(100+zindex_start_offset)
+    dpad_hint_sprite:setCenter(0,0)
+    dpad_hint_sprite:moveTo(6,screenHeight-60)
+    dpad_hint_sprite:setZIndex(30+zindex_start_offset)
+    dpad_hint_sprite:add()
+    caps_sub_sprite:setCenter(0,0)
+    caps_sub_sprite:moveTo(370,screenHeight-45)
+    caps_sub_sprite:setZIndex(31+zindex_start_offset)
+    caps_sub_sprite:add()
+
     draw_header(self.header_hint, self.ui_lang)
     sidebar_option()
     switch_keyboard()
