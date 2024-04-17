@@ -1,4 +1,4 @@
-![header.jpg](https://github.com/Antonoko/playdate-chinese-IME/blob/notes/__asset__/github_header.png?raw=true)
+![header.jpg](https://github.com/Antonoko/playdate-chinese-IME/blob/main/__asset__/github_header.png?raw=true)
 
 # Chinese/English IME for Playdate | 中英文输入法
 
