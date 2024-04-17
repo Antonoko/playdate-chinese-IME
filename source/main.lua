@@ -10,13 +10,17 @@ local screenWidth <const> = playdate.display.getWidth()
 local screenHeight <const> = playdate.display.getHeight()
 
 local keyboard_choose = "zh"
+local keyboard_choose_lazy_update = ""
+local en_cap_lock = false
+local en_cap_lock_lazy_update = false
 local cap_selection = "a"
 local cap_selection_lazy_update = ""
 local vowel_selection = "a"
 local vowel_selection_result = "ni"
 local candidate_words = ""
+local text_area_per_char_width = {}
 local text_area = ""
-local text_area_lazy_update = ""
+local text_area_lazy_update = "."
 local text_area_sprite = gfx.sprite.new()
 text_area_sprite:setCenter(0, 0)
 text_area_sprite:moveTo(25,55)
@@ -28,13 +32,9 @@ local crank_offset = 0
 local crankPosition_keyboard = 0
 local stage_manager = "keyboard"
 local STAGE = {}
-local keyboard_map
+local keyboard_map, keyboard_layout
 
-local FEISHU_MENU_IMG <const> = gfx.image.new("img/feishu_menu")
-local FEISHU_MENU_SPRITE <const> = gfx.sprite.new(FEISHU_MENU_IMG)
-FEISHU_MENU_SPRITE:setCenter(0,0)
-FEISHU_MENU_SPRITE:moveTo(0, 0)
-FEISHU_MENU_SPRITE:add()
+local ime_menu = playdate.getSystemMenu()
 
 local HALF_MASK_IMG <const> = gfx.image.new("img/white-mask2")
 local HALF_MASK_SPRITE <const> = gfx.sprite.new(HALF_MASK_IMG)
@@ -44,7 +44,7 @@ HALF_MASK_SPRITE:setZIndex(100)
 local DPAD_HINT_IMG <const> = gfx.imagetable.new("img/dpad_hint")
 local dpad_hint_sprite = gfx.sprite.new(DPAD_HINT_IMG[1])
 dpad_hint_sprite:setCenter(0,0)
-dpad_hint_sprite:moveTo(6,screenHeight-40)
+dpad_hint_sprite:moveTo(6,screenHeight-60)
 dpad_hint_sprite:add()
 
 local CAPS_SUB_IMG <const> = gfx.imagetable.new("img/keyboard_sub")
@@ -241,10 +241,191 @@ local CAPS_MAP_ZH <const> = {
         type = "symbol",
     },
 }
+local CAPS_MAP_EN <const> = {
+    {
+        name = "Q",
+        index = 1,
+        sprite = gfx.sprite.new(CAPS_IMG[1]),
+        type = "alphabet",
+    },
+    {
+        name = "W",
+        index = 2,
+        sprite = gfx.sprite.new(CAPS_IMG[2]),
+        type = "alphabet",
+    },
+    {
+        name = "E",
+        index = 3,
+        sprite = gfx.sprite.new(CAPS_IMG[3]),
+        type = "alphabet",
+    },
+    {
+        name = "R",
+        index = 4,
+        sprite = gfx.sprite.new(CAPS_IMG[4]),
+        type = "alphabet",
+    },
+    {
+        name = "T",
+        index = 5,
+        sprite = gfx.sprite.new(CAPS_IMG[5]),
+        type = "alphabet",
+    },
+    {
+        name = "Y",
+        index = 6,
+        sprite = gfx.sprite.new(CAPS_IMG[6]),
+        type = "alphabet",
+    },
+    {
+        name = "U",
+        index = 7,
+        sprite = gfx.sprite.new(CAPS_IMG[7]),
+        type = "alphabet",
+    },
+    {
+        name = "I",
+        index = 8,
+        sprite = gfx.sprite.new(CAPS_IMG[8]),
+        type = "alphabet",
+    },
+    {
+        name = "O",
+        index = 9,
+        sprite = gfx.sprite.new(CAPS_IMG[9]),
+        type = "alphabet",
+    },
+    {
+        name = "P",
+        index = 10,
+        sprite = gfx.sprite.new(CAPS_IMG[10]),
+        type = "alphabet",
+    },
+    {
+        name = "A",
+        index = 11,
+        sprite = gfx.sprite.new(CAPS_IMG[11]),
+        type = "alphabet",
+    },
+    {
+        name = "S",
+        index = 12,
+        sprite = gfx.sprite.new(CAPS_IMG[12]),
+        type = "alphabet",
+    },
+    {
+        name = "D",
+        index = 13,
+        sprite = gfx.sprite.new(CAPS_IMG[13]),
+        type = "alphabet",
+    },
+    {
+        name = "F",
+        index = 14,
+        sprite = gfx.sprite.new(CAPS_IMG[14]),
+        type = "alphabet",
+    },
+    {
+        name = "G",
+        index = 15,
+        sprite = gfx.sprite.new(CAPS_IMG[15]),
+        type = "alphabet",
+    },
+    {
+        name = "H",
+        index = 16,
+        sprite = gfx.sprite.new(CAPS_IMG[16]),
+        type = "alphabet",
+    },
+    {
+        name = "J",
+        index = 17,
+        sprite = gfx.sprite.new(CAPS_IMG[17]),
+        type = "alphabet",
+    },
+    {
+        name = "K",
+        index = 18,
+        sprite = gfx.sprite.new(CAPS_IMG[18]),
+        type = "alphabet",
+    },
+    {
+        name = "L",
+        index = 19,
+        sprite = gfx.sprite.new(CAPS_IMG[19]),
+        type = "alphabet",
+    },
+    {
+        name = "Z",
+        index = 20,
+        sprite = gfx.sprite.new(CAPS_IMG[20]),
+        type = "alphabet",
+    },
+    {
+        name = "X",
+        index = 21,
+        sprite = gfx.sprite.new(CAPS_IMG[21]),
+        type = "alphabet",
+    },
+    {
+        name = "C",
+        index = 22,
+        sprite = gfx.sprite.new(CAPS_IMG[22]),
+        type = "alphabet",
+    },
+    {
+        name = "V",
+        index = 23,
+        sprite = gfx.sprite.new(CAPS_IMG[23]),
+        type = "alphabet",
+    },
+    {
+        name = "B",
+        index = 24,
+        sprite = gfx.sprite.new(CAPS_IMG[24]),
+        type = "alphabet",
+    },
+    {
+        name = "N",
+        index = 25,
+        sprite = gfx.sprite.new(CAPS_IMG[25]),
+        type = "alphabet",
+    },
+    {
+        name = "M",
+        index = 26,
+        sprite = gfx.sprite.new(CAPS_IMG[26]),
+        type = "consonant",
+    },
+    {
+        name = "SYMBOL",
+        index = 35,
+        sprite = gfx.sprite.new(CAPS_IMG[35]),
+        type = "symbol",
+    },
+}
 local KEYBOARD_ZH_LAYOUT <const> = {
     10,
     10,
     10,
+}
+local KEYBOARD_EN_LAYOUT <const> = {
+    10,
+    9,
+    8,
+}
+local KEYBOARD_CONFIG_LIST <const> = {
+    zh = {
+        keyboard_map = CAPS_MAP_ZH,
+        keyboard_layout = KEYBOARD_ZH_LAYOUT,
+        caps_sub_sprite_index = 1,
+    },
+    en = {
+        keyboard_map = CAPS_MAP_EN,
+        keyboard_layout = KEYBOARD_EN_LAYOUT,
+        caps_sub_sprite_index = 2,
+    },
 }
 local VOWEL_LIST_OPTION <const> = json.decodeFile("data/zh_vowel.json")
 local ZH_WORD_LIST <const> = json.decodeFile("data/zh_word.json")
@@ -253,13 +434,17 @@ local FONT = {
         name = "roobert",
         font = gfx.font.new('font/Roobert-11-Medium')
     },
-    fusion_pixel_big = {
+    fusion_pixel_12 = {
         name = "fusion-pixel-font-12px-proportional-zh_hans",
         font = gfx.font.new('font/fusion-pixel-font-12px-proportional-zh_hans')
     },
     source_san = {
         name = "SourceHanSansCN-M-24px",
         font = gfx.font.new('font/SourceHanSansCN-M-24px')
+    },
+    source_san_20 = {
+        name = "SourceHanSansCN-M-20px",
+        font = gfx.font.new('font/SourceHanSansCN-M-20px')
     },
 }
 local SFX = {
@@ -287,11 +472,56 @@ function tableHasKey(table, key)
     return table[key] ~= nil
 end
 
-function removeLastChar(str)
-    return str:sub(1, -4) --en for -2
+function removeLastCharInTextArea(str)
+    if #text_area_per_char_width > 0 then
+        local remove_width = text_area_per_char_width[#text_area_per_char_width]
+        table.remove(text_area_per_char_width, #text_area_per_char_width)
+        return str:sub(1, -(1+remove_width)) --en for -2
+    end
  end
 
 --------------------------------------------core
+
+function draw_header(header_text, lang)
+    if header_text == nil then
+        header_text = "请输入"
+    end
+    if lang == nil then
+        lang = "en"
+    end
+    local lang_config = {
+        zh = {
+            img_table_index = 1
+        },
+        en = {
+            img_table_index = 2
+        },
+    }
+    local HEADER_IMG <const> = gfx.imagetable.new("img/header_bg")
+    local image = gfx.image.new(400, 45)
+    gfx.pushContext(image)
+        HEADER_IMG[lang_config[lang].img_table_index]:draw(0, 0)
+        gfx.setFont(FONT["source_san_20"].font)
+        gfx.setImageDrawMode(pd.graphics.kDrawModeFillWhite)
+        gfx.drawTextAligned(header_text, 14, 6)
+    gfx.popContext()
+    local header_sprite = gfx.sprite.new(image)
+    header_sprite:setCenter(0,0)
+    header_sprite:moveTo(0, 0)
+    header_sprite:add()
+end
+
+
+function sidebar_option()
+    local modeMenuItem, error = ime_menu:addMenuItem("Submit", function(value)
+        print("submitted")
+    end)
+    
+    local modeMenuItem, error = ime_menu:addMenuItem("Discard", function(value)
+        print("Discard")
+    end)
+end
+
 
 function add_mask_between_keyboard_and_menu(active)
     if active then
@@ -302,20 +532,37 @@ function add_mask_between_keyboard_and_menu(active)
 end
 
 function switch_keyboard()
-    if keyboard_choose == "zh" then
-        keyboard_map = CAPS_MAP_ZH
+    if keyboard_choose ~= keyboard_choose_lazy_update then
+        keyboard_map = KEYBOARD_CONFIG_LIST[keyboard_choose].keyboard_map
+        keyboard_layout = KEYBOARD_CONFIG_LIST[keyboard_choose].keyboard_layout
+        caps_sub_sprite:setImage(CAPS_SUB_IMG[KEYBOARD_CONFIG_LIST[keyboard_choose].caps_sub_sprite_index])
+
+        keyboard_choose_lazy_update = keyboard_choose
     end
 end
 
 
-function draw_keyboard_zh()
+function switch_to_next_keyboard()
+    -- FIXME: fuck lua disordered table
+    clean_keyboard()
+    if keyboard_choose == "en" then
+        keyboard_choose = "zh"
+    elseif keyboard_choose == "zh" then
+        keyboard_choose = "en"
+    end
+    switch_keyboard()
+    draw_keyboard()
+end
+
+
+function draw_keyboard()
     local line_cap_cnt = 1
     local line_cnt = 1
 
-    for k, v in pairs(CAPS_MAP_ZH) do
+    for k, v in pairs(keyboard_map) do
         local pos = {
-            x = (screenWidth - (CAP_SIZE.x * (KEYBOARD_ZH_LAYOUT[line_cnt] - 1)))/2 + (line_cap_cnt-1) * CAP_SIZE.x - 1 * (line_cap_cnt-1) + 15,
-            y = (screenHeight - (CAP_SIZE.y * (#KEYBOARD_ZH_LAYOUT - 1)))*(0.94) + (line_cnt-1) * CAP_SIZE.y - 1 * (line_cnt-1),
+            x = (screenWidth - (CAP_SIZE.x * (keyboard_layout[line_cnt] - 1)))/2 + (line_cap_cnt-1) * CAP_SIZE.x - 1 * (line_cap_cnt-1) + 15,
+            y = (screenHeight - (CAP_SIZE.y * (#keyboard_layout - 1)))*(0.94) + (line_cnt-1) * CAP_SIZE.y - 1 * (line_cnt-1),
         }
         if v then
             v.sprite:moveTo(pos.x, pos.y)
@@ -323,7 +570,7 @@ function draw_keyboard_zh()
         end
         
         line_cap_cnt += 1
-        if line_cap_cnt > KEYBOARD_ZH_LAYOUT[line_cnt] then
+        if line_cap_cnt > keyboard_layout[line_cnt] then
             line_cap_cnt = 1
             line_cnt += 1
         end
@@ -331,13 +578,37 @@ function draw_keyboard_zh()
 end
 
 
+function clean_keyboard()
+    for k, v in pairs(keyboard_map) do
+        v.sprite:remove()
+    end
+end
+
+
 function draw_keyboard_hint()
-    if (cap_selection ~= cap_selection_lazy_update) or (cap_select_index ~= cap_select_index_lazy_update) then
-        local image = gfx.image.new(43, 36)
+    if (cap_selection ~= cap_selection_lazy_update) or (cap_select_index ~= cap_select_index_lazy_update) or (en_cap_lock ~= en_cap_lock_lazy_update) then
+        local image = gfx.image.new(43, 55)
+
         gfx.pushContext(image)
             DPAD_HINT_IMG[1]:draw(0, 0)
-            if tableHasKey(VOWEL_LIST_OPTION, cap_selection) then
-                if keyboard_map[cap_select_index].type == "consonant" then
+            if keyboard_choose == "en" then
+                DPAD_HINT_IMG[1]:draw(0, 0)
+                if en_cap_lock then
+                    DPAD_HINT_IMG[9]:draw(0, 0)
+                else
+                    DPAD_HINT_IMG[8]:draw(0, 0)
+                end
+                if keyboard_map[cap_select_index].type == "symbol" then
+                    DPAD_HINT_IMG[11]:draw(0, 0)
+                else
+                    DPAD_HINT_IMG[10]:draw(0, 0)
+                end
+            end
+
+            if keyboard_choose == "zh" then
+                DPAD_HINT_IMG[12]:draw(0, 0)
+                if tableHasKey(VOWEL_LIST_OPTION, cap_selection) then
+                    if keyboard_map[cap_select_index].type == "consonant" then
                         if tableHasKey(VOWEL_LIST_OPTION[cap_selection], "a") then
                             DPAD_HINT_IMG[2]:draw(0, 0)
                         end
@@ -350,19 +621,21 @@ function draw_keyboard_hint()
                         if tableHasKey(VOWEL_LIST_OPTION[cap_selection], "eov") then
                             DPAD_HINT_IMG[5]:draw(0, 0)
                         end
-                elseif keyboard_map[cap_select_index].type == "symbol" then
-                    DPAD_HINT_IMG[6]:draw(0, 0)
-                elseif keyboard_map[cap_select_index].type == "disable" then
+                    elseif keyboard_map[cap_select_index].type == "symbol" then
+                        DPAD_HINT_IMG[6]:draw(0, 0)
+                    elseif keyboard_map[cap_select_index].type == "disable" then
+                        DPAD_HINT_IMG[7]:draw(0, 0)
+                    end
+                else
                     DPAD_HINT_IMG[7]:draw(0, 0)
                 end
-            else
-                DPAD_HINT_IMG[7]:draw(0, 0)
             end
         gfx.popContext()
         dpad_hint_sprite:setImage(image)
 
         cap_selection_lazy_update = cap_selection
         cap_select_index_lazy_update = cap_select_index
+        en_cap_lock_lazy_update = en_cap_lock
     end
 end
 
@@ -378,6 +651,15 @@ function choose_cap(cap_name)
                 v.sprite:setImage(CAPS_IMG[v.index])
             end
         end
+    end
+end
+
+
+function en_cap_lock_switch()
+    if en_cap_lock then
+        en_cap_lock = false
+    else
+        en_cap_lock = true
     end
 end
 
@@ -585,20 +867,41 @@ STAGE["keyboard"] = function()
     cap_select_index = mapValue(crankPosition_keyboard, 0, 360, 1, #keyboard_map + 1)
     choose_cap(keyboard_map[cap_select_index].name)
 
-    if pd.buttonJustPressed(pd.kButtonUp) then
-        cap_type_state_switcher("u")
-    elseif pd.buttonJustPressed(pd.kButtonDown) then
-        cap_type_state_switcher("d")
-    elseif pd.buttonJustPressed(pd.kButtonLeft) then
-        cap_type_state_switcher("l")
-    elseif pd.buttonJustPressed(pd.kButtonRight) then
-        cap_type_state_switcher("r")
-    elseif pd.buttonJustPressed(pd.kButtonB) then
-        text_area = removeLastChar(text_area)
+    if keyboard_choose == "en" then
+        if pd.buttonJustPressed(pd.kButtonUp) then
+            cap_type_state_switcher_en("u")
+        elseif pd.buttonJustPressed(pd.kButtonDown) then
+            cap_type_state_switcher_en("d")
+        elseif pd.buttonJustPressed(pd.kButtonLeft) then
+            cap_type_state_switcher_en("l")
+        elseif pd.buttonJustPressed(pd.kButtonRight) then
+            cap_type_state_switcher_en("r")
+        end
+    elseif keyboard_choose == "zh" then
+        if pd.buttonJustPressed(pd.kButtonUp) then
+            cap_type_state_switcher_zh("u")
+        elseif pd.buttonJustPressed(pd.kButtonDown) then
+            cap_type_state_switcher_zh("d")
+        elseif pd.buttonJustPressed(pd.kButtonLeft) then
+            cap_type_state_switcher_zh("l")
+        elseif pd.buttonJustPressed(pd.kButtonRight) then
+            cap_type_state_switcher_zh("r")
+        end
+    end
+
+    ---universal operation
+    if pd.buttonJustPressed(pd.kButtonB) then
+        text_area = removeLastCharInTextArea(text_area)
+        if text_area == nil then
+            text_area = ""
+        end
+        SFX.key.sound:play()
+    elseif pd.buttonJustPressed(pd.kButtonA) then
+        switch_to_next_keyboard()
         SFX.key.sound:play()
     end
 
-    function cap_type_state_switcher(direction)
+    function cap_type_state_switcher_zh(direction)
         if keyboard_map[cap_select_index].type == "consonant" then
             if direction == "u" then
                 vowel_selection = "a"
@@ -614,6 +917,7 @@ STAGE["keyboard"] = function()
         elseif keyboard_map[cap_select_index].type == "symbol" then
             if direction == "u" then
                 text_area = text_area.."，"
+                table.insert(text_area_per_char_width, 3)
             elseif direction == "d" then
                 vowel_selection = "symbol"
                 active_vowel_menu()
@@ -622,6 +926,7 @@ STAGE["keyboard"] = function()
                 active_vowel_menu()
             elseif direction == "r" then
                 text_area = text_area.."。"
+                table.insert(text_area_per_char_width, 3)
             end
             SFX.key.sound:play()
         elseif keyboard_map[cap_select_index].type == "disable" then
@@ -629,11 +934,44 @@ STAGE["keyboard"] = function()
         end
     end
 
+
+    function cap_type_state_switcher_en(direction)
+        if keyboard_map[cap_select_index].type == "alphabet" then
+            if direction == "l" then
+                en_cap_lock_switch()
+            else
+                if en_cap_lock then
+                    text_area = text_area..string.upper(keyboard_map[cap_select_index].name)
+                else
+                    text_area = text_area..string.lower(keyboard_map[cap_select_index].name)
+                end
+                table.insert(text_area_per_char_width, 1)
+            end
+            SFX.key.sound:play()
+        elseif keyboard_map[cap_select_index].type == "symbol" then
+            if direction == "u" then
+                text_area = text_area..","
+                table.insert(text_area_per_char_width, 1)
+            elseif direction == "d" then
+                vowel_selection = "symbol_en"
+                active_vowel_menu()
+            elseif direction == "l" then
+                en_cap_lock_switch()
+            elseif direction == "r" then
+                text_area = text_area.." "
+                table.insert(text_area_per_char_width, 1)
+            end
+            SFX.key.sound:play()
+        end
+    end
+
+
     function active_vowel_menu()
         if check_if_consonant_and_vowel_in_table(cap_selection, vowel_selection) then
             stage_manager = "vowel_menu"
         end    
     end
+
 end
 
 
@@ -649,6 +987,11 @@ STAGE["vowel_menu"] = function()
             stage_manager = "zh_word_menu"
         elseif cap_selection == "symbol" then
             text_area = text_area..vowel_selection_result
+            if vowel_selection == "symbol_en" then
+                table.insert(text_area_per_char_width, 1)
+            else
+                table.insert(text_area_per_char_width, 3)
+            end
             stage_manager = "keyboard"
             add_mask_between_keyboard_and_menu(false)
         else
@@ -679,6 +1022,7 @@ STAGE["zh_word_menu"] = function()
     drawZhWordMenu(vowel_selection_result)
     if pd.buttonJustPressed(pd.kButtonUp) or pd.buttonJustPressed(pd.kButtonDown) or pd.buttonJustPressed(pd.kButtonLeft) or pd.buttonJustPressed(pd.kButtonRight) then
         text_area = text_area..candidate_words
+        table.insert(text_area_per_char_width, #candidate_words)
         exit_zh_word_menu()
     elseif pd.buttonJustPressed(pd.kButtonB) then
         exit_zh_word_menu()
@@ -688,8 +1032,10 @@ end
 --------------------------------------------
 
 function init()
+    draw_header("请输入", "zh")
+    sidebar_option()
     switch_keyboard()
-    draw_keyboard_zh()
+    draw_keyboard()
 end
 
 
