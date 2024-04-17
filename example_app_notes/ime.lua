@@ -846,10 +846,10 @@ end
 
 function updateTextAreaDisplay()
     if text_area ~= text_area_lazy_update then
-        local textImage = gfx.image.new(350, 90)
+        local textImage = gfx.image.new(350, 100)
         gfx.pushContext(textImage)
-            gfx.setFont(FONT["source_san"].font)
-            gfx.drawTextInRect(text_area.."|", 0, 0, 350, 90)
+            gfx.setFont(FONT["source_san_20"].font)
+            gfx.drawTextInRect(text_area.."|", 0, 0, 350, 100)
         gfx.popContext()
         text_area_sprite:setImage(textImage)
         text_area_lazy_update = text_area
@@ -1069,7 +1069,7 @@ function IME:startRunning(header_hint, ui_lang, text_area_custom, text_area_per_
     end
 
     text_area_sprite:setCenter(0, 0)
-    text_area_sprite:moveTo(25,55)
+    text_area_sprite:moveTo(25,50)
     text_area_sprite:setZIndex(40+zindex_start_offset)
     text_area_sprite:add()
     HALF_MASK_SPRITE:moveTo(screenWidth/2, screenHeight/2)
