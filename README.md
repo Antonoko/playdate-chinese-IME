@@ -1,12 +1,14 @@
+![header.jpg](https://github.com/Antonoko/playdate-chinese-IME/blob/notes/__asset__/github_header.png?raw=true)
+
 # Chinese/English IME for Playdate | 中英文输入法
 
 这是一个可以在 Playdate 上以较高效率输入中文与英文的输入法。
 
-提供了一个便签应用作为使用示例，你可以在 release 中下载后 sideload 体验。你也可以把输入法嵌入到你的游戏或应用中进行使用。
+提供了一个便签应用作为使用示例，你可以在 [release](https://github.com/Antonoko/playdate-chinese-IME/releases/tag/notes) 中下载后 sideload 体验。你也可以把输入法嵌入到你的游戏或应用中进行使用。
 
 This is an input method that can input Chinese and English with high efficiency on Playdate.
 
-A Notes application is provided as a usage example. You can download it in release and sideload on your Playdate to experience. You can also embed the input method into your game or application.
+A Notes application is provided as a usage example. You can download it in [release](https://github.com/Antonoko/playdate-chinese-IME/releases/tag/notes) and sideload on your Playdate to experience. You can also embed the input method into your game or application.
 
 ## How to embed into your app
 1. Duplicate files under `source` to your project directory;
