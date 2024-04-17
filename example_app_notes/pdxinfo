@@ -1,6 +1,6 @@
-name=Notes
+name=notes
 author=Haru
-description=Chinese IME example app for Playdate
+description=Chinese IME example note app for Playdate
 bundleID=com.haru.notes
 version=1.0
 buildNumber=1

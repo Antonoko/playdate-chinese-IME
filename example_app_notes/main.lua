@@ -14,6 +14,9 @@ local gfx <const> = playdate.graphics
 local screenWidth <const> = playdate.display.getWidth()
 local screenHeight <const> = playdate.display.getHeight()
 
+local IMG_ABOUT <const> = gfx.image.new("img/about")
+playdate.setMenuImage(IMG_ABOUT)
+
 local WHITE_MASK_IMG <const> = gfx.image.new("img/white")
 local WHITE_MASK_SPRITE = gfx.sprite.new(WHITE_MASK_IMG)
 WHITE_MASK_SPRITE:setCenter(0,0)
@@ -59,6 +62,15 @@ local SFX = {
     },
     key = {
         sound = pd.sound.fileplayer.new("sound/key")
+    },
+    slide_in = {
+        sound = pd.sound.fileplayer.new("sound/slide_in")
+    },
+    slide_out = {
+        sound = pd.sound.fileplayer.new("sound/slide_out")
+    },
+    click = {
+        sound = pd.sound.fileplayer.new("sound/click")
     }
 }
 local STAGE = {}
@@ -70,7 +82,6 @@ local user_notes = {}
 local current_select_note_index = 1
 local editor_mode = "new"
 local note_menu = playdate.getSystemMenu()
-
 
 ----------------utils
 
@@ -317,11 +328,13 @@ STAGE["main_screen"] = function()
     draw_note_page_animation("out")
 
     if pd.buttonJustPressed(pd.kButtonA) then
+        SFX.click.sound:play()
         draw_note_list_animation_init = false
         draw_note_page_animation_init = false
         draw_note_page_init = false
         stage_manager = "note_details"
     elseif pd.buttonJustPressed(pd.kButtonB) then
+        SFX.click.sound:play()
         add_white_under_keyboard(true)
         editor_mode = "new"
         zh_ime:startRunning("新建笔记", "zh", "", {})
@@ -336,11 +349,13 @@ STAGE["note_details"] = function()
     draw_note_page_animation("in")
 
     if pd.buttonJustPressed(pd.kButtonA) then
+        SFX.click.sound:play()
         add_white_under_keyboard(true)
         editor_mode = "edit"
         zh_ime:startRunning("修改笔记", "zh", user_notes[current_select_note_index].note, user_notes[current_select_note_index].per_char_width)
         stage_manager = "note_edit"
     elseif pd.buttonJustPressed(pd.kButtonB) then
+        SFX.slide_out.sound:play()
         draw_note_list_init = false
         draw_note_list_animation_init = false
         draw_note_page_animation_init = false
@@ -353,6 +368,7 @@ STAGE["note_edit"] = function()
     if zh_ime:isRunning() then
         user_input_text, user_input_text_per_char_width = zh_ime:update()
     else
+        SFX.slide_out.sound:play()
         if #user_input_text > 0 and (not zh_ime:isUserDiscard()) then
             if editor_mode == "edit" then
                 table.remove(user_notes, 1)
