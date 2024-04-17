@@ -11,7 +11,7 @@ local gfx <const> = playdate.graphics
 local screenWidth <const> = playdate.display.getWidth()
 local screenHeight <const> = playdate.display.getHeight()
 
-local zh_ime = IME("Input your text", "zh")
+local zh_ime = IME("笔记编辑", "zh", "sample", {1,1,1,1,1,1})
 zh_ime:startRunning()
 
 

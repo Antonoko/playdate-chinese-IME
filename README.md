@@ -9,15 +9,15 @@ This is an input method that can input Chinese and English with high efficiency 
 A Notes application is provided as a usage example. You can download it in release and sideload on your Playdate to experience. You can also embed the input method into your game or application.
 
 ## How to embed into your app
-1. Duplicate files at `source` into your project directory;
+1. Duplicate files under `source` to your project directory;
 2. Code snippet reference:
 ```lua
 import 'ime'
 
 -- initialization IME
 -- You can specify the prompt title and UI language during input(zh/en)
-local zh_ime = IME("Input your text", "en")
---local zh_ime = IME("请输入笔记", "zh")
+local zh_ime = IME("Input your text", "en", "sample", {1,1,1,1,1,1})
+--local zh_ime = IME("请输入笔记", "zh", "示例文本", {3,3,3,3})
 
 --Start calling the IME method
 zh_ime:startRunning()
@@ -35,3 +35,13 @@ function playdate.update()
     print(zh_ime:isUserDiscard())   -- Check whether the user submitted the content normally or discarded it
 end
 ```
+
+## Known issues
+- 由于使用了 playdate.graphics.drawTextInRect 来进行文本排版，在折行时，最后一个中文汉字可能不会被显示（overflow 了）。文本内容是在的，只是不能被正确排版显示出来。
+    - 可能原因：lua 对 unicode 支持有限；playdate 字体引擎对中文文字属性处理不佳；
+
+## Features wish to add
+- 实现一个简单的排版引擎来处理文本换行；
+- 通过 menu 切换文本编辑与光标编辑模式，支持光标移动修改；
+- 支持滚动编辑与显示；
+- 支持限制输入字数；

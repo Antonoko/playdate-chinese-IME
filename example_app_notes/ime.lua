@@ -1045,16 +1045,31 @@ end
 
 
 class('IME').extends()
-function IME:init(header_hint, ui_lang)
+function IME:init(header_hint, ui_lang, text_area_custom, text_area_per_char_width_custom)
     -- header_hint: "Input your text"
     -- header_hint: "zh" / "en"
 	IME.super.init(self)
+    if header_hint == nil then
+        self.header_hint = "Text Input"
+    else
+        self.header_hint = header_hint
+    end
+    if ui_lang == nil then
+        self.ui_lang = "en"
+    else
+        self.ui_lang = ui_lang
+    end
+    if text_area_custom == nil or text_area_per_char_width_custom == nil then
+    else
+        text_area = text_area_custom
+        text_area_per_char_width = text_area_per_char_width_custom
+    end
 end
 
 function IME:startRunning()
     ime_is_running = true
     ime_is_user_discard = false
-    draw_header(header_hint, ui_lang)
+    draw_header(self.header_hint, self.ui_lang)
     sidebar_option()
     switch_keyboard()
     draw_keyboard()
