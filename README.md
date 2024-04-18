@@ -49,3 +49,8 @@ end
 - 支持限制输入字数；
 - 添加默认的进出入动画；
 - 优化提升性能；
+
+## Thanks
+
+- 汉语拼音辞典：https://github.com/mapull/chinese-dictionary
+- Playdate 中文支持项目：https://github.com/Antonoko/Chinese-font-for-playdate
