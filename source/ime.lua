@@ -389,7 +389,7 @@ local CAPS_MAP_EN <const> = {
         name = "M",
         index = 26,
         sprite = gfx.sprite.new(CAPS_IMG[26]),
-        type = "consonant",
+        type = "alphabet",
     },
     {
         name = "SYMBOL",

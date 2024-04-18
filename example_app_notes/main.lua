@@ -148,6 +148,7 @@ end
 function save_state()
 	print("Saving state...")
 	local state = {}
+    state["user_notes"] = user_notes
 
 	playdate.datastore.write(state)
 	print("State saved!")
