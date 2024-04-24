@@ -21,6 +21,8 @@ local vowel_selection = "a"
 local vowel_selection_result = "ni"
 local candidate_words = ""
 local text_area_per_char_width = {}
+-- greater than 100 is for special purposes
+-- line break: 101, \n
 local text_area = ""
 local text_area_lazy_update = "."
 local text_area_sprite = gfx.sprite.new()
@@ -469,6 +471,12 @@ function removeLastCharInTextArea(str)
     if #text_area_per_char_width > 0 then
         local remove_width = text_area_per_char_width[#text_area_per_char_width]
         table.remove(text_area_per_char_width, #text_area_per_char_width)
+        
+        -- linebreak
+        if remove_width == 101 then
+            return str:sub(1, -2)  --remove \n
+        end
+
         return str:sub(1, -(1+remove_width)) --en for -2
     end
  end
@@ -846,7 +854,17 @@ end
 
 function updateTextAreaDisplay()
     if text_area ~= text_area_lazy_update then
-        local textImage = gfx.image.new(350, 100)
+        local img_size = {
+            "width" = 350,
+            "height" = 100,
+        }
+        gfx.setFont(FONT["source_san_20"].font)
+        local max_zh_char_size = gfx.getTextSize("我")
+        local max_en_char_size = gfx.getTextSize("M")
+        local split_newline = 
+
+
+        local textImage = gfx.image.new(img_size.width, img_size.height)
         gfx.pushContext(textImage)
             gfx.setFont(FONT["source_san_20"].font)
             gfx.drawTextInRect(text_area.."|", 0, 0, 350, 100)
@@ -988,11 +1006,16 @@ STAGE["vowel_menu"] = function()
         if tableHasKey(ZH_WORD_LIST, vowel_selection_result) then
             stage_manager = "zh_word_menu"
         elseif cap_selection == "symbol" then
-            text_area = text_area..vowel_selection_result
-            if vowel_selection == "symbol_en" then
-                table.insert(text_area_per_char_width, 1)
+            if vowel_selection_result == "newline" or vowel_selection_result == "换行" then
+                text_area = text_area.."\\n"
+                table.insert(text_area_per_char_width, 101)
             else
-                table.insert(text_area_per_char_width, 3)
+                text_area = text_area..vowel_selection_result
+                if vowel_selection == "symbol_en" then
+                    table.insert(text_area_per_char_width, 1)
+                else
+                    table.insert(text_area_per_char_width, 3)
+                end    
             end
             stage_manager = "keyboard"
             add_mask_between_keyboard_and_menu(false)
