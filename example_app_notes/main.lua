@@ -35,16 +35,34 @@ local SKIN_MAIN_TITLE_IMG <const> = gfx.imagetable.new("img/main_title")
 local SKIN_NOTE_TITLE_IMG <const> = gfx.imagetable.new("img/note_title")
 local theme = {
     default = {
+        name = "default",
         main_img = SKIN_MAIN_TITLE_IMG[1],
         note_img = SKIN_NOTE_TITLE_IMG[1],
     },
     feishu = {
+        name = "feishu",
         main_img = SKIN_MAIN_TITLE_IMG[2],
         note_img = SKIN_NOTE_TITLE_IMG[2],
     },
     notion = {
+        name = "notion",
         main_img = SKIN_MAIN_TITLE_IMG[3],
         note_img = SKIN_NOTE_TITLE_IMG[3],
+    },
+    Windows = {
+        name = "Windows",
+        main_img = SKIN_MAIN_TITLE_IMG[4],
+        note_img = SKIN_NOTE_TITLE_IMG[4],
+    },
+    Mac = {
+        name = "Mac",
+        main_img = SKIN_MAIN_TITLE_IMG[5],
+        note_img = SKIN_NOTE_TITLE_IMG[5],
+    },
+    custom = {
+        name = "custom",
+        main_img = SKIN_MAIN_TITLE_IMG[6],
+        note_img = SKIN_NOTE_TITLE_IMG[6],
     },
 }
 local theme_selection = "default"
@@ -380,7 +398,15 @@ end
 
 function main_page_sidebar_option()
     note_menu:removeAllMenuItems()
-    local modeMenuItem, error = note_menu:addOptionsMenuItem("Theme", {"default", "feishu", "notion"}, theme_selection, function(value)
+    local theme_list = {
+        "default",
+        "feishu",
+        "notion",
+        "Windows",
+        "Mac",
+        "custom",
+    }
+    local modeMenuItem, error = note_menu:addOptionsMenuItem("Theme", theme_list, theme_selection, function(value)
         theme_selection = value
         update_theme()
         save_state()
