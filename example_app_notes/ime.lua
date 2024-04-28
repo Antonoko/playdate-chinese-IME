@@ -20,10 +20,11 @@ local cap_selection_lazy_update = ""
 local vowel_selection = "a"
 local vowel_selection_result = "ni"
 local candidate_words = ""
-local text_area_per_char_width = {}
-local text_area = ""
-local text_area_lazy_update = "."
+local text_area = {}
+local text_area_lazy_update = {"asfiosgk"}
 local text_area_sprite = gfx.sprite.new()
+local text_area_scroll_offset = -10
+local cursor_pos_index = 0
 
 local cap_select_index = 1
 local cap_select_index_lazy_update = 1
@@ -32,10 +33,12 @@ local crankPosition_keyboard = 0
 local stage_manager = "keyboard"
 local STAGE = {}
 local keyboard_map, keyboard_layout
+local edit_mode = "type"
 
 local ime_menu = playdate.getSystemMenu()
 local ime_is_running = false
-local ime_is_user_discard = false
+ime_is_user_discard = false
+local ime_ui_lang = "en"
 
 local HALF_MASK_IMG <const> = gfx.image.new("ime_src/img/white-mask2")
 local HALF_MASK_SPRITE <const> = gfx.sprite.new(HALF_MASK_IMG)
@@ -45,6 +48,9 @@ local dpad_hint_sprite = gfx.sprite.new(DPAD_HINT_IMG[1])
 
 local CAPS_SUB_IMG <const> = gfx.imagetable.new("ime_src/img/keyboard_sub")
 local caps_sub_sprite = gfx.sprite.new(CAPS_SUB_IMG[1])
+
+local CURSOR_MODE_IMG <const> = gfx.imagetable.new("ime_src/img/cursor_mode")
+local cursor_mode_tip_sprite = gfx.sprite.new(CURSOR_MODE_IMG[1])
 
 local CAPS_IMG <const> = gfx.imagetable.new("ime_src/img/keyboard_caps")
 local CAPS_IMG_PRESS <const> = gfx.imagetable.new("ime_src/img/keyboard_caps_press")
@@ -465,13 +471,41 @@ function tableHasKey(table, key)
     return table[key] ~= nil
 end
 
-function removeLastCharInTextArea(str)
-    if #text_area_per_char_width > 0 then
-        local remove_width = text_area_per_char_width[#text_area_per_char_width]
-        table.remove(text_area_per_char_width, #text_area_per_char_width)
-        return str:sub(1, -(1+remove_width)) --en for -2
+function deepCompareTable(tbl1, tbl2)
+    if tbl1 == tbl2 then
+        return true
+    elseif type(tbl1) == "table" and type(tbl2) == "table" then
+        for key1, value1 in pairs(tbl1) do
+            local value2 = tbl2[key1]
+            if value2 == nil then
+                return false
+            elseif value1 ~= value2 then
+                if type(value1) == "table" and type(value2) == "table" then
+                    if not deepCompare(value1, value2) then
+                        return false
+                    end
+                else
+                    return false
+                end
+            end
+        end
+        for key2, _ in pairs(tbl2) do
+            if tbl1[key2] == nil then
+                return false
+            end
+        end
+        return true
     end
- end
+    return false
+end
+
+function shallowCopy(original)
+    local copy = {}
+    for key, value in pairs(original) do
+        copy[key] = value
+    end
+    return copy
+end
 
 --------------------------------------------core
 
@@ -507,17 +541,39 @@ end
 
 
 function sidebar_option()
-    local modeMenuItem, error = ime_menu:addMenuItem("Submit", function(value)
-        print("Submit")
-        ime_exit()
+    local modeMenuItem, error = ime_menu:addOptionsMenuItem("? Mode", {"type", "cursor"}, edit_mode , function(value)
+        print("Mode", value)
+        if value == "type" then
+            edit_mode = "type"
+            stage_manager = "keyboard"
+            cursor_mode_tip_sprite:remove()
+        elseif value == "cursor" then
+            edit_mode = "cursor"
+            stage_manager = "cursor_mode"
+            if ime_ui_lang == "en" then
+                cursor_mode_tip_sprite:setImage(CURSOR_MODE_IMG[2])
+            elseif  ime_ui_lang == "zh" then
+                cursor_mode_tip_sprite:setImage(CURSOR_MODE_IMG[1])
+            end
+            cursor_mode_tip_sprite:setCenter(0, 0)
+            cursor_mode_tip_sprite:moveTo(0,screenHeight-80)
+            cursor_mode_tip_sprite:setZIndex(60+zindex_start_offset)
+            cursor_mode_tip_sprite:add()
+        end
     end)
     
-    local modeMenuItem, error = ime_menu:addMenuItem("Discard", function(value)
+    local modeMenuItem, error = ime_menu:addMenuItem("- Discard", function(value)
         print("Discard")
-        text_area = ""
+        text_area = {}
         ime_is_user_discard = true
         ime_exit()
     end)
+
+    local modeMenuItem, error = ime_menu:addMenuItem("+ Submit", function(value)
+        print("Submit")
+        ime_exit()
+    end)
+
 end
 
 
@@ -844,15 +900,54 @@ function drawZhWordMenu(pinyin)
 
 end
 
-function updateTextAreaDisplay()
-    if text_area ~= text_area_lazy_update then
-        local textImage = gfx.image.new(350, 100)
+function updateTextAreaDisplay(scroll_offset, isforce)
+    if isforce == nil then
+        isforce = false
+    end
+    if not deepCompareTable(text_area, text_area_lazy_update) or isforce then
+        local img_size = {
+            width = 350,
+            height = 125,
+        }
+        gfx.setFont(FONT["source_san_20"].font)
+        local max_zh_char_size = gfx.getTextSize("我")
+        local max_en_char_size = gfx.getTextSize("M")
+        local lineheight = max_zh_char_size * 1.6
+
+        --排版引擎
+        local textImage = gfx.image.new(img_size.width, img_size.height)
+        local current_x = 0
+        local current_y = 0 - text_area_scroll_offset
         gfx.pushContext(textImage)
             gfx.setFont(FONT["source_san_20"].font)
-            gfx.drawTextInRect(text_area.."|", 0, 0, 350, 100)
+            for key, char in pairs(text_area) do
+                if char == "\\n" then --\n 强制换行
+                    current_x = 0
+                    current_y += lineheight
+                else
+                    gfx.drawTextAligned(char, current_x, current_y, kTextAlignment.left)
+                    current_x += gfx.getTextSize(char)
+                end
+                
+                if current_x > img_size.width - max_zh_char_size then
+                    current_x = 0
+                    current_y += lineheight
+                end
+
+                if key == cursor_pos_index then
+                    gfx.drawTextAligned("|", current_x-3, current_y, kTextAlignment.left)
+                end
+            end
         gfx.popContext()
+
+        -- OLD ENGINE
+        -- local textImage = gfx.image.new(img_size.width, img_size.height)
+        -- gfx.pushContext(textImage)
+        --     gfx.setFont(FONT["source_san_20"].font)
+        --     gfx.drawTextInRect(text_area.."|", 0, 0, 350, 100)
+        -- gfx.popContext()
         text_area_sprite:setImage(textImage)
-        text_area_lazy_update = text_area
+        text_area_lazy_update = shallowCopy(text_area)
     end
 end
 
@@ -893,9 +988,11 @@ STAGE["keyboard"] = function()
 
     ---universal operation
     if pd.buttonJustPressed(pd.kButtonB) then
-        text_area = removeLastCharInTextArea(text_area)
-        if text_area == nil then
-            text_area = ""
+        table.remove(text_area, cursor_pos_index)
+        if text_area == nil or #text_area == 0 then
+            text_area = {""}
+        else
+            cursor_pos_index -= 1
         end
         SFX.key.sound:play()
     elseif pd.buttonJustPressed(pd.kButtonA) then
@@ -918,8 +1015,8 @@ STAGE["keyboard"] = function()
             active_vowel_menu()
         elseif keyboard_map[cap_select_index].type == "symbol" then
             if direction == "u" then
-                text_area = text_area.."，"
-                table.insert(text_area_per_char_width, 3)
+                table.insert(text_area, cursor_pos_index+1, "，")
+                cursor_pos_index += 1
             elseif direction == "d" then
                 vowel_selection = "symbol"
                 active_vowel_menu()
@@ -927,8 +1024,8 @@ STAGE["keyboard"] = function()
                 vowel_selection = "sentence"
                 active_vowel_menu()
             elseif direction == "r" then
-                text_area = text_area.."。"
-                table.insert(text_area_per_char_width, 3)
+                table.insert(text_area, cursor_pos_index+1, "。")
+                cursor_pos_index += 1
             end
             SFX.key.sound:play()
         elseif keyboard_map[cap_select_index].type == "disable" then
@@ -943,25 +1040,25 @@ STAGE["keyboard"] = function()
                 en_cap_lock_switch()
             else
                 if en_cap_lock then
-                    text_area = text_area..string.upper(keyboard_map[cap_select_index].name)
+                    table.insert(text_area, cursor_pos_index+1, string.upper(keyboard_map[cap_select_index].name))
                 else
-                    text_area = text_area..string.lower(keyboard_map[cap_select_index].name)
+                    table.insert(text_area, cursor_pos_index+1, string.lower(keyboard_map[cap_select_index].name))
                 end
-                table.insert(text_area_per_char_width, 1)
+                cursor_pos_index += 1
             end
             SFX.key.sound:play()
         elseif keyboard_map[cap_select_index].type == "symbol" then
             if direction == "u" then
-                text_area = text_area..","
-                table.insert(text_area_per_char_width, 1)
+                table.insert(text_area, cursor_pos_index+1, ",")
+                cursor_pos_index += 1
             elseif direction == "d" then
                 vowel_selection = "symbol_en"
                 active_vowel_menu()
             elseif direction == "l" then
                 en_cap_lock_switch()
             elseif direction == "r" then
-                text_area = text_area.." "
-                table.insert(text_area_per_char_width, 1)
+                table.insert(text_area, cursor_pos_index+1, " ")
+                cursor_pos_index += 1
             end
             SFX.key.sound:play()
         end
@@ -976,6 +1073,36 @@ STAGE["keyboard"] = function()
 
 end
 
+STAGE["cursor_mode"] = function()
+    local crankTicks = pd.getCrankTicks(20)
+    local change, acceleratedChange = playdate.getCrankChange()
+    local updateTextAreaCondition = false
+    if change ~= 0 then
+        if text_area_scroll_offset > -11 then
+            text_area_scroll_offset += change/2
+            updateTextAreaCondition = true
+        else
+            text_area_scroll_offset = -10
+        end
+    end
+    if pd.buttonJustPressed(pd.kButtonLeft) then
+        if cursor_pos_index > 0 then
+            cursor_pos_index -= 1
+            updateTextAreaCondition = true
+        end
+    elseif pd.buttonJustPressed(pd.kButtonRight) then
+        if cursor_pos_index < #text_area then
+            cursor_pos_index += 1
+            updateTextAreaCondition = true
+        end
+    end
+
+    if updateTextAreaCondition then
+        updateTextAreaDisplay(text_area_scroll_offset, true)
+        updateTextAreaCondition = false
+    end
+end
+
 
 STAGE["vowel_menu"] = function()
     local enable_zh_font_display = false
@@ -988,11 +1115,12 @@ STAGE["vowel_menu"] = function()
         if tableHasKey(ZH_WORD_LIST, vowel_selection_result) then
             stage_manager = "zh_word_menu"
         elseif cap_selection == "symbol" then
-            text_area = text_area..vowel_selection_result
-            if vowel_selection == "symbol_en" then
-                table.insert(text_area_per_char_width, 1)
+            if vowel_selection_result == "newline" or vowel_selection_result == "换行" then
+                table.insert(text_area, cursor_pos_index+1, "\\n")
+                cursor_pos_index += 1
             else
-                table.insert(text_area_per_char_width, 3)
+                table.insert(text_area, cursor_pos_index+1, vowel_selection_result)
+                cursor_pos_index += 1
             end
             stage_manager = "keyboard"
             add_mask_between_keyboard_and_menu(false)
@@ -1023,8 +1151,8 @@ STAGE["zh_word_menu"] = function()
 
     drawZhWordMenu(vowel_selection_result)
     if pd.buttonJustPressed(pd.kButtonUp) or pd.buttonJustPressed(pd.kButtonDown) or pd.buttonJustPressed(pd.kButtonLeft) or pd.buttonJustPressed(pd.kButtonRight) then
-        text_area = text_area..candidate_words
-        table.insert(text_area_per_char_width, #candidate_words)
+        table.insert(text_area, cursor_pos_index+1, candidate_words)
+        cursor_pos_index += 1
         exit_zh_word_menu()
     elseif pd.buttonJustPressed(pd.kButtonB) then
         exit_zh_word_menu()
@@ -1047,29 +1175,30 @@ function IME:init()
 	IME.super.init(self)
 end
 
-function IME:startRunning(header_hint, ui_lang, text_area_custom, text_area_per_char_width_custom)
+function IME:startRunning(header_hint, ui_lang, text_area_custom)
     ime_is_running = true
     ime_is_user_discard = false
     ime_menu:removeAllMenuItems()
 
+    text_area_scroll_offset = -10
     if header_hint == nil then
         self.header_hint = "Text Input"
     else
         self.header_hint = header_hint
     end
     if ui_lang == nil then
-        self.ui_lang = "en"
+        ime_ui_lang = "en"
     else
-        self.ui_lang = ui_lang
+        ime_ui_lang = ui_lang
     end
-    if text_area_custom == nil or text_area_per_char_width_custom == nil then
+    if text_area_custom == nil then
     else
-        text_area = text_area_custom
-        text_area_per_char_width = text_area_per_char_width_custom
+        text_area = shallowCopy(text_area_custom)
+        cursor_pos_index = #text_area
     end
 
     text_area_sprite:setCenter(0, 0)
-    text_area_sprite:moveTo(25,50)
+    text_area_sprite:moveTo(25,36)
     text_area_sprite:setZIndex(40+zindex_start_offset)
     text_area_sprite:add()
     HALF_MASK_SPRITE:moveTo(screenWidth/2, screenHeight/2)
@@ -1083,7 +1212,7 @@ function IME:startRunning(header_hint, ui_lang, text_area_custom, text_area_per_
     caps_sub_sprite:setZIndex(31+zindex_start_offset)
     caps_sub_sprite:add()
 
-    draw_header(self.header_hint, self.ui_lang)
+    draw_header(self.header_hint, ime_ui_lang)
     sidebar_option()
     switch_keyboard()
     draw_keyboard()
@@ -1091,8 +1220,9 @@ end
 
 function IME:update()
     STAGE[stage_manager]()
-    updateTextAreaDisplay()
-    return text_area, text_area_per_char_width
+    updateTextAreaDisplay(text_area_scroll_offset)
+    print("cursor_pos_index ", cursor_pos_index)
+    return text_area
 end
 
 function IME:isRunning()

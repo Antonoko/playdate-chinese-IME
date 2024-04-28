@@ -29,8 +29,28 @@ NOTE_TIP_SPRITE:moveTo(0,screenHeight-32)
 
 local NOTE_CONTENT_SPRITE = gfx.sprite.new()
 NOTE_CONTENT_SPRITE:setCenter(0,0)
-NOTE_CONTENT_SPRITE:moveTo(0,0)
+NOTE_CONTENT_SPRITE:moveTo(0,0) 
 
+local SKIN_MAIN_TITLE_IMG <const> = gfx.imagetable.new("img/main_title")
+local SKIN_NOTE_TITLE_IMG <const> = gfx.imagetable.new("img/note_title")
+local theme = {
+    default = {
+        main_img = SKIN_MAIN_TITLE_IMG[1],
+        note_img = SKIN_NOTE_TITLE_IMG[1],
+    },
+    feishu = {
+        main_img = SKIN_MAIN_TITLE_IMG[2],
+        note_img = SKIN_NOTE_TITLE_IMG[2],
+    },
+    notion = {
+        main_img = SKIN_MAIN_TITLE_IMG[3],
+        note_img = SKIN_NOTE_TITLE_IMG[3],
+    },
+}
+local theme_selection = "default"
+local SKIN_NOTE_TITLE_SPRITE = gfx.sprite.new(theme[theme_selection].note_img)
+SKIN_NOTE_TITLE_SPRITE:setCenter(0,0)
+SKIN_NOTE_TITLE_SPRITE:moveTo(0,0)
 
 local FONT = {
     source_san_20 = {
@@ -85,6 +105,10 @@ local note_menu = playdate.getSystemMenu()
 
 ----------------utils
 
+function concatenateStrings(strTable)
+    return table.concat(strTable)
+end
+
 function get_time_now_as_string()
     local minute = playdate.getTime().minute
     if minute <10 then
@@ -101,31 +125,26 @@ end
 local user_notes_default <const> = {
     {
         time = get_time_now_as_string(),
-        note = "欢迎使用 notes！按 A 查看笔记，按 B 来添加新的笔记。",
-        per_char_width = {3,3,3,3,1,1,1,1,1,1,3,3,1,1,1,3,3,3,3,3,3,1,1,1,3,3,3,3,3,3,3,3},
+        note = {'欢', '迎', '使', '用', ' ', 'n', 'o', 't', 'e', 's', '！', '按', ' ', 'A', ' ', '查', '看', '笔', '记', '，', '按', ' ', 'B', ' ', '来', '添', '加', '新', '的', '笔', '记', '。'},
     },
     {
         time = "2024/4/17  11:56:01",
-        note = "If all you have is a hammer, everything looks like a nail. 如果你手里只有一把锤子，那么所有东西看上去都像是钉子。",
-        per_char_width = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3},
+        note = {'I', 'f', ' ', 'a', 'l', 'l', ' ', 'y', 'o', 'u', ' ', 'h', 'a', 'v', 'e', ' ', 'i', 's', ' ', 'a', ' ', 'h', 'a', 'm', 'm', 'e', 'r', ',', ' ', 'e', 'v', 'e', 'r', 'y', 't', 'h', 'i', 'n', 'g', ' ', 'l', 'o', 'o', 'k', 's', ' ', 'l', 'i', 'k', 'e', ' ', 'a', ' ', 'n', 'a', 'i', 'l', '.', ' ', '如', '果', '你', '手', '里', '只', '有', '一', '把', '锤', '子', '，', '那', '么', '所', '有', '东', '西', '看', '上', '去', '都', '像', '是', '钉', '子', '。'},
     },
     {
         time = "Send from haru",
-        note = "我们生活在一个悲惨的世界里，而我们所能期待的最好结果，就是这样空虚而毫无意义的日子能不断继续下去，而不是因为某种意外戛然而止。",
-        per_char_width = {3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3},
+        note = {'我', '们', '生', '活', '在', '一', '个', '悲', '惨', '的', '世', '界', '里', '，', '而', '我', '们', '所', '能', '期', '待', '的', '最', '好', '结', '果', '，', '就', '是', '这', '样', '空', '虚', '而', '毫', '无', '意', '义', '的', '日', '子', '能', '不', '断', '继', '续', '下', '去', '，', '而', '不', '是', '因', '为', '某', '种', '意', '外', '戛', '然', '而', '止', '。'},
     },
     {
         time = get_time_now_as_string(),
-        note = "试着进入笔记后删除我吧！",
-        per_char_width = {3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3},
+        note = {'试', '着', '进', '入', '笔', '记', '后', '删', '除', '我', '吧', '！'},
     }
 }
 
 local user_notes_none <const> = {
     {
         time = get_time_now_as_string(),
-        note = "欢迎使用 Notes！按 A 查看笔记，按 B 来添加新的笔记。",
-        per_char_width = {3,3,3,3,1,1,1,1,1,1,3,3,1,1,1,3,3,3,3,3,3,1,1,1,3,3,3,3,3,3,3,3},
+        note = {'欢', '迎', '使', '用', ' ', 'n', 'o', 't', 'e', 's', '！', '按', ' ', 'A', ' ', '查', '看', '笔', '记', '，', '按', ' ', 'B', ' ', '来', '添', '加', '新', '的', '笔', '记', '。'},
     }
 }
 
@@ -144,11 +163,17 @@ local get_or_default = function (table, key, expectedType, default)
 end
 
 
+function update_theme()
+    SKIN_NOTE_TITLE_SPRITE:setImage(theme[theme_selection].note_img)
+end
+
+
 -- Save the state of the game to the datastore
 function save_state()
 	print("Saving state...")
 	local state = {}
     state["user_notes"] = user_notes
+    state["theme_selection"] = theme_selection
 
 	playdate.datastore.write(state)
 	print("State saved!")
@@ -167,6 +192,7 @@ function load_state()
 	end
 
     user_notes = get_or_default(state, "user_notes", "table", user_notes_default)
+    theme_selection = get_or_default(state, "theme_selection", "string", "default")
 
 end
 
@@ -205,15 +231,16 @@ function draw_note_list()
         draw_note_list_gridviewSprite:moveTo(screenWidth, 0)
         draw_note_list_gridviewSprite:setZIndex(100)
         draw_note_list_gridviewSprite:add()
-        
-        note_menu:removeAllMenuItems()
+
+        main_page_sidebar_option()
         draw_note_list_init = true
     end
 
 
     function draw_note_list_gridview:drawSectionHeader(section, x, y, width, height)
-        gfx.setFont(FONT["Asheville_Sans_24_Light"].font)
-        gfx.drawTextAligned("notes™", x+14, y+8, kTextAlignment.left)
+        theme[theme_selection].main_img:draw(x,y)
+        -- gfx.setFont(FONT["Asheville_Sans_24_Light"].font)
+        -- gfx.drawTextAligned("notes™", x+14, y+8, kTextAlignment.left)
     end
 
     function draw_note_list_gridview:drawCell(section, row, column, selected, x, y, width, height)
@@ -224,7 +251,13 @@ function draw_note_list()
             gfx.setImageDrawMode(gfx.kDrawModeCopy)
         end
         gfx.setFont(FONT["source_san_20"].font)
-        gfx.drawTextInRect(string.sub(user_notes[row].note, 1, 96), x+10, y+5, 350, draw_note_list_size*1.5*2)
+        local ellipsis
+        if #user_notes[row].note > 30 then
+            ellipsis = "..."
+        else
+            ellipsis = ""
+        end
+        gfx.drawTextInRect(string.sub(concatenateStrings(user_notes[row].note), 1, 96)..ellipsis, x+10, y+5, 350, draw_note_list_size*1.5*2)
         gfx.setFont(FONT["Roobert_10_halved"].font)
         gfx.drawTextAligned(user_notes[row].time, x+385, y+55, kTextAlignment.right)
     end
@@ -278,10 +311,29 @@ function draw_note_page()
         local image = gfx.image.new(400,240)
         gfx.pushContext(image)
             gfx.setFont(FONT["Roobert_10_halved"].font)
-            gfx.drawTextAligned(user_notes[current_select_note_index].time, 10, 10)    
+            gfx.drawTextAligned(user_notes[current_select_note_index].time, 14, 8)
+
             gfx.setFont(FONT["source_san_20"].font)
-            gfx.drawTextInRect(user_notes[current_select_note_index].note, 10, 35, 390, 200)    
+            local current_x = 10
+            local current_y = 35
+            local max_zh_char_size = gfx.getTextSize("啊")
+            local lineheight = max_zh_char_size * 1.4
+            for key, char in pairs(user_notes[current_select_note_index].note) do
+                if char == "\\n" then --\n 强制换行
+                    current_x = 10
+                    current_y += lineheight
+                else
+                    gfx.drawTextAligned(char, current_x, current_y, kTextAlignment.left)
+                    current_x += gfx.getTextSize(char)
+                end
+                
+                if current_x > 390 - max_zh_char_size then
+                    current_x = 10
+                    current_y += lineheight
+                end
+            end 
         gfx.popContext()
+        SKIN_NOTE_TITLE_SPRITE:add()
         NOTE_CONTENT_SPRITE:add()
         NOTE_TIP_SPRITE:add()
         NOTE_CONTENT_SPRITE:setImage(image)
@@ -305,6 +357,7 @@ function draw_note_page_animation(type)
     else
         if not draw_note_page_animator:ended() then
             NOTE_TIP_SPRITE:moveTo(draw_note_page_animator:currentValue(), screenHeight-32)
+            SKIN_NOTE_TITLE_SPRITE:moveTo(draw_note_page_animator:currentValue(), 0)
             NOTE_CONTENT_SPRITE:moveTo(draw_note_page_animator:currentValue(), 0)
         end
     end
@@ -315,7 +368,6 @@ end
 function note_sidebar_option()
     note_menu:removeAllMenuItems()
     local modeMenuItem, error = note_menu:addMenuItem("Delete", function(value)
-        print("Deleted note"..current_select_note_index..":"..user_notes[current_select_note_index].note)
         table.remove(user_notes, current_select_note_index)
         save_state()
         draw_note_list_init = false
@@ -323,6 +375,15 @@ function note_sidebar_option()
         draw_note_list_animation_init = false
         draw_note_page_animation_init = false
         stage_manager = "main_screen"
+    end)
+end
+
+function main_page_sidebar_option()
+    note_menu:removeAllMenuItems()
+    local modeMenuItem, error = note_menu:addOptionsMenuItem("Theme", {"default", "feishu", "notion"}, theme_selection, function(value)
+        theme_selection = value
+        update_theme()
+        save_state()
     end)
 end
 
@@ -343,7 +404,7 @@ STAGE["main_screen"] = function()
         SFX.click.sound:play()
         add_white_under_keyboard(true)
         editor_mode = "new"
-        zh_ime:startRunning("新建笔记", "zh", "", {})
+        zh_ime:startRunning("新建笔记", "zh", {})
         stage_manager = "note_edit"
     end
 end
@@ -358,7 +419,7 @@ STAGE["note_details"] = function()
         SFX.click.sound:play()
         add_white_under_keyboard(true)
         editor_mode = "edit"
-        zh_ime:startRunning("修改笔记", "zh", user_notes[current_select_note_index].note, user_notes[current_select_note_index].per_char_width)
+        zh_ime:startRunning("修改笔记", "zh", user_notes[current_select_note_index].note)
         stage_manager = "note_edit"
     elseif pd.buttonJustPressed(pd.kButtonB) then
         SFX.slide_out.sound:play()
@@ -369,10 +430,10 @@ STAGE["note_details"] = function()
     end
 end
 
-local user_input_text, user_input_text_per_char_width
+local user_input_text
 STAGE["note_edit"] = function()
     if zh_ime:isRunning() then
-        user_input_text, user_input_text_per_char_width = zh_ime:update()
+        user_input_text = zh_ime:update()
     else
         SFX.slide_out.sound:play()
         if #user_input_text > 0 and (not zh_ime:isUserDiscard()) then
@@ -382,7 +443,6 @@ STAGE["note_edit"] = function()
             local note_to_insert = {
                 time = get_time_now_as_string(),
                 note = user_input_text,
-                per_char_width = user_input_text_per_char_width,
             }
             table.insert(user_notes, 1, note_to_insert)    
             save_state()
@@ -401,6 +461,7 @@ end
 
 function init()
     load_state()
+    update_theme()
 end
 
 

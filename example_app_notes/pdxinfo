@@ -1,7 +1,7 @@
-name=notes
+name=notes2
 author=Haru
-description=Chinese IME example note app for Playdate
-bundleID=com.haru.notes
-version=1.1
-buildNumber=2
+description=Chinese notes app for Playdate
+bundleID=com.haru.notes2
+version=1.2
+buildNumber=3
 imagePath=img/launcher
