@@ -14,6 +14,13 @@ local gfx <const> = playdate.graphics
 local screenWidth <const> = playdate.display.getWidth()
 local screenHeight <const> = playdate.display.getHeight()
 
+local NOTE_SCROLL_MAX_LIMIT_MINIMUM <const> = 60
+local note_scroll_max_limit = NOTE_SCROLL_MAX_LIMIT_MINIMUM
+local note_scroll_max_limit_buffer = 0
+local note_scroll_offset = 1
+local invert_color = false
+local user_custom_name = {}
+
 local IMG_ABOUT <const> = gfx.image.new("img/about")
 playdate.setMenuImage(IMG_ABOUT)
 
@@ -26,10 +33,6 @@ local NOTE_TIP <const> = gfx.image.new("img/note_tip")
 local NOTE_TIP_SPRITE = gfx.sprite.new(NOTE_TIP)
 NOTE_TIP_SPRITE:setCenter(0,0)
 NOTE_TIP_SPRITE:moveTo(0,screenHeight-32)
-
-local NOTE_CONTENT_SPRITE = gfx.sprite.new()
-NOTE_CONTENT_SPRITE:setCenter(0,0)
-NOTE_CONTENT_SPRITE:moveTo(0,0) 
 
 local SKIN_MAIN_TITLE_IMG <const> = gfx.imagetable.new("img/main_title")
 local SKIN_NOTE_TITLE_IMG <const> = gfx.imagetable.new("img/note_title")
@@ -69,11 +72,21 @@ local theme_selection = "default"
 local SKIN_NOTE_TITLE_SPRITE = gfx.sprite.new(theme[theme_selection].note_img)
 SKIN_NOTE_TITLE_SPRITE:setCenter(0,0)
 SKIN_NOTE_TITLE_SPRITE:moveTo(0,0)
+local note_title_datetime_sprite = gfx.sprite.new()
+note_title_datetime_sprite:setCenter(0,0)
+note_title_datetime_sprite:moveTo(0,0)
+local NOTE_CONTENT_SPRITE = gfx.sprite.new()
+NOTE_CONTENT_SPRITE:setCenter(0,0)
+NOTE_CONTENT_SPRITE:moveTo(0,0) 
 
 local FONT = {
     source_san_20 = {
         name = "SourceHanSansCN-M-20px",
         font = gfx.font.new('img/font/SourceHanSansCN-M-20px')
+    },
+    LXGWWenKaiGBScreen_24 = {
+        name = "LXGWWenKaiGBScreen-24px",
+        font = gfx.font.new('img/font/LXGWWenKaiGBScreen-24px')
     },
     Roobert_10 = {
         name = "Roobert-10-Bold",
@@ -143,11 +156,11 @@ end
 local user_notes_default <const> = {
     {
         time = get_time_now_as_string(),
-        note = {'欢', '迎', '使', '用', ' ', 'n', 'o', 't', 'e', 's', '！', '按', ' ', 'A', ' ', '查', '看', '笔', '记', '，', '按', ' ', 'B', ' ', '来', '添', '加', '新', '的', '笔', '记', '。'},
+        note = {'欢', '迎', '使', '用', ' ', 'n', 'o', 't', 'e', 's', ' ', '2', '！', '按', ' ', 'A', ' ', '查', '看', '笔', '记', '，', '按', ' ', 'B', ' ', '来', '添', '加', '新', '的', '笔', '记', '。', '\\n', '\\n', '更', '新', '：', '\\n', '-', ' ', '输', '入', '法', '现', '在', '支', '持', '换', '行', '、', '移', '动', '光', '标', '、', '滚', '动', '文', '本', '了', '；', '\\n', '-', '新', '增', '若', '干', '主', '题', '，', '你', '也', '可', '以', '使', '用', '自', '定', '义', '的', '标', '题', '名', '。'},
     },
     {
         time = "2024/4/17  11:56:01",
-        note = {'I', 'f', ' ', 'a', 'l', 'l', ' ', 'y', 'o', 'u', ' ', 'h', 'a', 'v', 'e', ' ', 'i', 's', ' ', 'a', ' ', 'h', 'a', 'm', 'm', 'e', 'r', ',', ' ', 'e', 'v', 'e', 'r', 'y', 't', 'h', 'i', 'n', 'g', ' ', 'l', 'o', 'o', 'k', 's', ' ', 'l', 'i', 'k', 'e', ' ', 'a', ' ', 'n', 'a', 'i', 'l', '.', ' ', '如', '果', '你', '手', '里', '只', '有', '一', '把', '锤', '子', '，', '那', '么', '所', '有', '东', '西', '看', '上', '去', '都', '像', '是', '钉', '子', '。'},
+        note = {'I', 'f', ' ', 'a', 'l', 'l', ' ', 'y', 'o', 'u', ' ', 'h', 'a', 'v', 'e', ' ', 'i', 's', ' ', 'a', ' ', 'h', 'a', 'm', 'm', 'e', 'r', ',', ' ', 'e', 'v', 'e', 'r', 'y', 't', 'h', 'i', 'n', 'g', ' ', 'l', 'o', 'o', 'k', 's', ' ', 'l', 'i', 'k', 'e', ' ', 'a', ' ', 'n', 'a', 'i', 'l', '.', '\\n', '如', '果', '你', '手', '里', '只', '有', '一', '把', '锤', '子', '，', '那', '么', '所', '有', '东', '西', '看', '上', '去', '都', '像', '是', '钉', '子', '。'},
     },
     {
         time = "Send from haru",
@@ -185,6 +198,15 @@ function update_theme()
     SKIN_NOTE_TITLE_SPRITE:setImage(theme[theme_selection].note_img)
 end
 
+function update_note_title()
+    local image = gfx.image.new(400,30)
+    gfx.pushContext(image)
+        gfx.setFont(FONT["Roobert_10_halved"].font)
+        gfx.drawTextAligned(user_notes[current_select_note_index].time, 14, 8)
+    gfx.popContext()
+    note_title_datetime_sprite:setImage(image)
+end
+
 
 -- Save the state of the game to the datastore
 function save_state()
@@ -192,6 +214,8 @@ function save_state()
 	local state = {}
     state["user_notes"] = user_notes
     state["theme_selection"] = theme_selection
+    state["invert_color"] = invert_color
+    state["user_custom_name"] = user_custom_name
 
 	playdate.datastore.write(state)
 	print("State saved!")
@@ -211,6 +235,8 @@ function load_state()
 
     user_notes = get_or_default(state, "user_notes", "table", user_notes_default)
     theme_selection = get_or_default(state, "theme_selection", "string", "default")
+    invert_color = get_or_default(state, "invert_color", "boolean", false)
+    user_custom_name = get_or_default(state, "user_custom_name", "table", {"自", "定", "义", "名", "字"})
 
 end
 
@@ -257,6 +283,10 @@ function draw_note_list()
 
     function draw_note_list_gridview:drawSectionHeader(section, x, y, width, height)
         theme[theme_selection].main_img:draw(x,y)
+        if theme_selection == "custom" then
+            gfx.setFont(FONT["LXGWWenKaiGBScreen_24"].font)
+            gfx.drawTextAligned(concatenateStrings(user_custom_name), x+14, y+10, kTextAlignment.left)
+        end
         -- gfx.setFont(FONT["Asheville_Sans_24_Light"].font)
         -- gfx.drawTextAligned("notes™", x+14, y+8, kTextAlignment.left)
     end
@@ -288,6 +318,7 @@ function draw_note_list()
         draw_note_list_gridview:selectPreviousRow(true)
         SFX.selection_reverse.sound:play()
     end
+
     _, current_select_note_index, _ = draw_note_list_gridview:getSelection()
     
     ----------------------draw
@@ -325,21 +356,20 @@ end
 
 local draw_note_page_init = false
 function draw_note_page()
-    if not draw_note_page_init then
+    function _updateNotePageText()
         local image = gfx.image.new(400,240)
         gfx.pushContext(image)
-            gfx.setFont(FONT["Roobert_10_halved"].font)
-            gfx.drawTextAligned(user_notes[current_select_note_index].time, 14, 8)
-
             gfx.setFont(FONT["source_san_20"].font)
             local current_x = 10
-            local current_y = 35
+            local current_y = 35 - note_scroll_offset
             local max_zh_char_size = gfx.getTextSize("啊")
             local lineheight = max_zh_char_size * 1.4
+            note_scroll_max_limit_buffer = 0
             for key, char in pairs(user_notes[current_select_note_index].note) do
                 if char == "\\n" then --\n 强制换行
                     current_x = 10
                     current_y += lineheight
+                    note_scroll_max_limit_buffer += lineheight
                 else
                     gfx.drawTextAligned(char, current_x, current_y, kTextAlignment.left)
                     current_x += gfx.getTextSize(char)
@@ -348,17 +378,62 @@ function draw_note_page()
                 if current_x > 390 - max_zh_char_size then
                     current_x = 10
                     current_y += lineheight
+                    note_scroll_max_limit_buffer += lineheight
                 end
             end 
-        gfx.popContext()
-        SKIN_NOTE_TITLE_SPRITE:add()
-        NOTE_CONTENT_SPRITE:add()
-        NOTE_TIP_SPRITE:add()
-        NOTE_CONTENT_SPRITE:setImage(image)
 
+            if note_scroll_max_limit_buffer > NOTE_SCROLL_MAX_LIMIT_MINIMUM then
+                note_scroll_max_limit = note_scroll_max_limit_buffer
+            end
+        gfx.popContext()
+        NOTE_CONTENT_SPRITE:setImage(image)
+    end
+
+    if not draw_note_page_init then
+        update_note_title()
+        NOTE_CONTENT_SPRITE:add()
+        SKIN_NOTE_TITLE_SPRITE:add()
+        note_title_datetime_sprite:add()
+        NOTE_TIP_SPRITE:add()
         note_sidebar_option()
+        note_scroll_max_limit = NOTE_SCROLL_MAX_LIMIT_MINIMUM
+        note_scroll_offset = 1
+        _updateNotePageText()
         draw_note_page_init = true
     end
+
+    local change, acceleratedChange = playdate.getCrankChange()
+    if change ~= 0 then
+        if note_scroll_offset > 0 and note_scroll_offset < note_scroll_max_limit then
+            note_scroll_offset += change/2
+            _updateNotePageText()
+        elseif note_scroll_offset > note_scroll_max_limit then
+            note_scroll_offset = note_scroll_max_limit - 1
+        else
+            note_scroll_offset = 1
+        end
+    end
+
+    if playdate.buttonIsPressed( playdate.kButtonUp ) then
+        if note_scroll_offset > 0 and note_scroll_offset < note_scroll_max_limit then
+            note_scroll_offset -= 10
+            _updateNotePageText()
+        elseif note_scroll_offset > note_scroll_max_limit then
+            note_scroll_offset = note_scroll_max_limit - 1
+        else
+            note_scroll_offset = 1
+        end
+    elseif playdate.buttonIsPressed( playdate.kButtonDown ) then
+        if note_scroll_offset > 0 and note_scroll_offset < note_scroll_max_limit then
+            note_scroll_offset += 10
+            _updateNotePageText()
+        elseif note_scroll_offset > note_scroll_max_limit then
+            note_scroll_offset = note_scroll_max_limit - 1
+        else
+            note_scroll_offset = 1
+        end
+    end
+
 end
 
 
@@ -376,6 +451,7 @@ function draw_note_page_animation(type)
         if not draw_note_page_animator:ended() then
             NOTE_TIP_SPRITE:moveTo(draw_note_page_animator:currentValue(), screenHeight-32)
             SKIN_NOTE_TITLE_SPRITE:moveTo(draw_note_page_animator:currentValue(), 0)
+            note_title_datetime_sprite:moveTo(draw_note_page_animator:currentValue(), 0)
             NOTE_CONTENT_SPRITE:moveTo(draw_note_page_animator:currentValue(), 0)
         end
     end
@@ -411,6 +487,25 @@ function main_page_sidebar_option()
         update_theme()
         save_state()
     end)
+
+    local modeMenuItem, error = note_menu:addMenuItem("Custom Name", function(value)
+        add_white_under_keyboard(true)
+        zh_ime:startRunning("自定义标题", "zh", user_custom_name)
+        stage_manager = "edit_custom_name"
+    end)
+
+    local invertMenuItem, error = note_menu:addCheckmarkMenuItem("Night", invert_color, function(value)
+        print("Checkmark menu item value changed to: ", value)
+        invert_color = value
+        setInverted(invert_color)
+        save_state()
+    end)
+
+end
+
+function setInverted(darkMode)
+	inverted = darkMode
+	playdate.display.setInverted(inverted)
 end
 
 -----------------
@@ -471,6 +566,24 @@ STAGE["note_edit"] = function()
                 note = user_input_text,
             }
             table.insert(user_notes, 1, note_to_insert)    
+            save_state()
+        end
+        add_white_under_keyboard(false)
+        draw_note_list_animation_init = false
+        draw_note_page_animation_init = false
+        draw_note_list_init = false
+        draw_note_page_init = false
+        stage_manager = "main_screen"
+    end
+end
+
+STAGE["edit_custom_name"] = function()
+    if zh_ime:isRunning() then
+        user_input_text = zh_ime:update()
+    else
+        SFX.slide_out.sound:play()
+        if #user_input_text > 0 and (not zh_ime:isUserDiscard()) then
+            user_custom_name = user_input_text
             save_state()
         end
         add_white_under_keyboard(false)

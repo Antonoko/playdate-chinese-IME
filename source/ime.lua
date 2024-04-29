@@ -24,6 +24,9 @@ local text_area = {}
 local text_area_lazy_update = {"asfiosgk"}
 local text_area_sprite = gfx.sprite.new()
 local text_area_scroll_offset = -10
+local TEXT_AREA_SCROLL_MAX_LIMIT_MINIMUM <const> = 60
+local text_area_scroll_max_limit = TEXT_AREA_SCROLL_MAX_LIMIT_MINIMUM
+local text_area_scroll_max_limit_buffer = 0
 local cursor_pos_index = 0
 
 local cap_select_index = 1
@@ -541,6 +544,13 @@ end
 
 
 function sidebar_option()
+    local modeMenuItem, error = ime_menu:addMenuItem("- Discard", function(value)
+        print("Discard")
+        text_area = {}
+        ime_is_user_discard = true
+        ime_exit()
+    end)
+
     local modeMenuItem, error = ime_menu:addOptionsMenuItem("? Mode", {"type", "cursor"}, edit_mode , function(value)
         print("Mode", value)
         if value == "type" then
@@ -560,13 +570,6 @@ function sidebar_option()
             cursor_mode_tip_sprite:setZIndex(60+zindex_start_offset)
             cursor_mode_tip_sprite:add()
         end
-    end)
-    
-    local modeMenuItem, error = ime_menu:addMenuItem("- Discard", function(value)
-        print("Discard")
-        text_area = {}
-        ime_is_user_discard = true
-        ime_exit()
     end)
 
     local modeMenuItem, error = ime_menu:addMenuItem("+ Submit", function(value)
@@ -912,18 +915,20 @@ function updateTextAreaDisplay(scroll_offset, isforce)
         gfx.setFont(FONT["source_san_20"].font)
         local max_zh_char_size = gfx.getTextSize("我")
         local max_en_char_size = gfx.getTextSize("M")
-        local lineheight = max_zh_char_size * 1.6
+        local lineheight = max_zh_char_size * 1.4
 
         --排版引擎
         local textImage = gfx.image.new(img_size.width, img_size.height)
         local current_x = 0
         local current_y = 0 - text_area_scroll_offset
+        text_area_scroll_max_limit_buffer = 0
         gfx.pushContext(textImage)
             gfx.setFont(FONT["source_san_20"].font)
             for key, char in pairs(text_area) do
                 if char == "\\n" then --\n 强制换行
                     current_x = 0
                     current_y += lineheight
+                    text_area_scroll_max_limit_buffer += lineheight
                 else
                     gfx.drawTextAligned(char, current_x, current_y, kTextAlignment.left)
                     current_x += gfx.getTextSize(char)
@@ -932,6 +937,7 @@ function updateTextAreaDisplay(scroll_offset, isforce)
                 if current_x > img_size.width - max_zh_char_size then
                     current_x = 0
                     current_y += lineheight
+                    text_area_scroll_max_limit_buffer += lineheight
                 end
 
                 if key == cursor_pos_index then
@@ -939,6 +945,10 @@ function updateTextAreaDisplay(scroll_offset, isforce)
                 end
             end
         gfx.popContext()
+
+        if text_area_scroll_max_limit_buffer > TEXT_AREA_SCROLL_MAX_LIMIT_MINIMUM then
+            text_area_scroll_max_limit = text_area_scroll_max_limit_buffer
+        end
 
         -- OLD ENGINE
         -- local textImage = gfx.image.new(img_size.width, img_size.height)
@@ -1078,9 +1088,11 @@ STAGE["cursor_mode"] = function()
     local change, acceleratedChange = playdate.getCrankChange()
     local updateTextAreaCondition = false
     if change ~= 0 then
-        if text_area_scroll_offset > -11 then
+        if text_area_scroll_offset > -11 and text_area_scroll_offset < text_area_scroll_max_limit then
             text_area_scroll_offset += change/2
             updateTextAreaCondition = true
+        elseif text_area_scroll_offset > text_area_scroll_max_limit then
+            text_area_scroll_offset = text_area_scroll_max_limit - 1
         else
             text_area_scroll_offset = -10
         end
@@ -1095,9 +1107,22 @@ STAGE["cursor_mode"] = function()
             cursor_pos_index += 1
             updateTextAreaCondition = true
         end
+    elseif pd.buttonJustPressed(pd.kButtonUp) then
+        cursor_pos_index -= 15
+        updateTextAreaCondition = true
+    elseif pd.buttonJustPressed(pd.kButtonDown) then
+        cursor_pos_index += 15
+        updateTextAreaCondition = true
     end
 
     if updateTextAreaCondition then
+        if cursor_pos_index < 1 then
+            cursor_pos_index = 1
+        end
+        if cursor_pos_index > #text_area then
+            cursor_pos_index = #text_area
+        end
+
         updateTextAreaDisplay(text_area_scroll_offset, true)
         updateTextAreaCondition = false
     end
@@ -1181,6 +1206,9 @@ function IME:startRunning(header_hint, ui_lang, text_area_custom)
     ime_menu:removeAllMenuItems()
 
     text_area_scroll_offset = -10
+    edit_mode = "type"
+    local text_area_scroll_max_limit = TEXT_AREA_SCROLL_MAX_LIMIT_MINIMUM
+    local text_area_scroll_max_limit_buffer = 0
     if header_hint == nil then
         self.header_hint = "Text Input"
     else
@@ -1221,7 +1249,6 @@ end
 function IME:update()
     STAGE[stage_manager]()
     updateTextAreaDisplay(text_area_scroll_offset)
-    print("cursor_pos_index ", cursor_pos_index)
     return text_area
 end
 
