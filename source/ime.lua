@@ -27,6 +27,7 @@ local text_area_scroll_offset = -10
 local TEXT_AREA_SCROLL_MAX_LIMIT_MINIMUM <const> = 60
 local text_area_scroll_max_limit = TEXT_AREA_SCROLL_MAX_LIMIT_MINIMUM
 local text_area_scroll_max_limit_buffer = 0
+local is_first_load_text_area = true
 local cursor_pos_index = 0
 
 local cap_select_index = 1
@@ -54,6 +55,9 @@ local caps_sub_sprite = gfx.sprite.new(CAPS_SUB_IMG[1])
 
 local CURSOR_MODE_IMG <const> = gfx.imagetable.new("ime_src/img/cursor_mode")
 local cursor_mode_tip_sprite = gfx.sprite.new(CURSOR_MODE_IMG[1])
+
+local CURSOR_IMG <const> = gfx.image.new("ime_src/img/cursor")
+local ZH_WORD_TIP_IMG <const> = gfx.image.new("ime_src/img/zh_word_tip")
 
 local CAPS_IMG <const> = gfx.imagetable.new("ime_src/img/keyboard_caps")
 local CAPS_IMG_PRESS <const> = gfx.imagetable.new("ime_src/img/keyboard_caps_press")
@@ -848,7 +852,8 @@ function drawZhWordMenu(pinyin)
 
     function drawZhWordMenu_gridview:drawSectionHeader(section, x, y, width, height)
         gfx.setFont(FONT["roobert"].font)
-        gfx.drawTextAligned(pinyin, x+4, y+4, kTextAlignment.left)
+        gfx.drawTextAligned(pinyin, x+6, y+4, kTextAlignment.left)
+        ZH_WORD_TIP_IMG:draw(screenWidth-120, y+2)
     end
 
     function drawZhWordMenu_gridview:drawCell(section, row, column, selected, x, y, width, height)
@@ -916,38 +921,49 @@ function updateTextAreaDisplay(scroll_offset, isforce)
         local max_zh_char_size = gfx.getTextSize("我")
         local max_en_char_size = gfx.getTextSize("M")
         local lineheight = max_zh_char_size * 1.4
+        local textImage_push
 
         --排版引擎
-        local textImage = gfx.image.new(img_size.width, img_size.height)
-        local current_x = 0
-        local current_y = 0 - text_area_scroll_offset
-        text_area_scroll_max_limit_buffer = 0
-        gfx.pushContext(textImage)
-            gfx.setFont(FONT["source_san_20"].font)
-            for key, char in pairs(text_area) do
-                if char == "\\n" then --\n 强制换行
-                    current_x = 0
-                    current_y += lineheight
-                    text_area_scroll_max_limit_buffer += lineheight
-                else
-                    gfx.drawTextAligned(char, current_x, current_y, kTextAlignment.left)
-                    current_x += gfx.getTextSize(char)
-                end
-                
-                if current_x > img_size.width - max_zh_char_size then
-                    current_x = 0
-                    current_y += lineheight
-                    text_area_scroll_max_limit_buffer += lineheight
-                end
+        function text_area_render_engine()
+            local textImage = gfx.image.new(img_size.width, img_size.height)
+            local current_x = 0
+            local current_y = 0 - text_area_scroll_offset
+            text_area_scroll_max_limit_buffer = 0
+            gfx.pushContext(textImage)
+                gfx.setFont(FONT["source_san_20"].font)
+                for key, char in pairs(text_area) do
+                    if char == "\\n" then --\n 强制换行
+                        current_x = 0
+                        current_y += lineheight
+                        text_area_scroll_max_limit_buffer += lineheight
+                    else
+                        gfx.drawTextAligned(char, current_x, current_y, kTextAlignment.left)
+                        current_x += gfx.getTextSize(char)
+                    end
+                    
+                    if current_x > img_size.width - max_zh_char_size then
+                        current_x = 0
+                        current_y += lineheight
+                        text_area_scroll_max_limit_buffer += lineheight
+                    end
 
-                if key == cursor_pos_index then
-                    gfx.drawTextAligned("|", current_x-3, current_y, kTextAlignment.left)
+                    if key == cursor_pos_index then
+                        CURSOR_IMG:draw(current_x-5, current_y-4)
+                        -- gfx.drawTextAligned("|", current_x-3, current_y, kTextAlignment.left)
+                    end
                 end
-            end
-        gfx.popContext()
+            gfx.popContext()
+            return textImage
+        end
+        textImage_push = text_area_render_engine()
 
         if text_area_scroll_max_limit_buffer > TEXT_AREA_SCROLL_MAX_LIMIT_MINIMUM then
-            text_area_scroll_max_limit = text_area_scroll_max_limit_buffer
+            text_area_scroll_max_limit = text_area_scroll_max_limit_buffer - lineheight*2
+            if is_first_load_text_area then
+                text_area_scroll_offset = text_area_scroll_max_limit - lineheight*1
+                textImage_push = text_area_render_engine()
+                is_first_load_text_area = false
+            end
         end
 
         -- OLD ENGINE
@@ -956,7 +972,7 @@ function updateTextAreaDisplay(scroll_offset, isforce)
         --     gfx.setFont(FONT["source_san_20"].font)
         --     gfx.drawTextInRect(text_area.."|", 0, 0, 350, 100)
         -- gfx.popContext()
-        text_area_sprite:setImage(textImage)
+        text_area_sprite:setImage(textImage_push)
         text_area_lazy_update = shallowCopy(text_area)
     end
 end
@@ -1083,6 +1099,7 @@ STAGE["keyboard"] = function()
 
 end
 
+local cursor_skip_cnt_sensitivity = 5
 STAGE["cursor_mode"] = function()
     local crankTicks = pd.getCrankTicks(20)
     local change, acceleratedChange = playdate.getCrankChange()
@@ -1097,15 +1114,24 @@ STAGE["cursor_mode"] = function()
             text_area_scroll_offset = -10
         end
     end
-    if pd.buttonJustPressed(pd.kButtonLeft) then
-        if cursor_pos_index > 0 then
-            cursor_pos_index -= 1
-            updateTextAreaCondition = true
+
+    if pd.buttonIsPressed(pd.kButtonLeft) then
+        cursor_skip_cnt_sensitivity += 1
+        if cursor_skip_cnt_sensitivity > 3 then
+            cursor_skip_cnt_sensitivity = 0
+            if cursor_pos_index > 0 then
+                cursor_pos_index -= 1
+                updateTextAreaCondition = true
+            end
         end
-    elseif pd.buttonJustPressed(pd.kButtonRight) then
-        if cursor_pos_index < #text_area then
-            cursor_pos_index += 1
-            updateTextAreaCondition = true
+    elseif pd.buttonIsPressed(pd.kButtonRight) then
+        cursor_skip_cnt_sensitivity += 1
+        if cursor_skip_cnt_sensitivity > 3 then
+            cursor_skip_cnt_sensitivity = 0
+            if cursor_pos_index < #text_area then
+                cursor_pos_index += 1
+                updateTextAreaCondition = true
+            end
         end
     elseif pd.buttonJustPressed(pd.kButtonUp) then
         cursor_pos_index -= 15
@@ -1113,6 +1139,10 @@ STAGE["cursor_mode"] = function()
     elseif pd.buttonJustPressed(pd.kButtonDown) then
         cursor_pos_index += 15
         updateTextAreaCondition = true
+    end
+
+    if pd.buttonJustReleased(pd.kButtonLeft) or pd.buttonJustReleased(pd.kButtonRight) then
+        cursor_skip_cnt_sensitivity = 5
     end
 
     if updateTextAreaCondition then
@@ -1207,6 +1237,7 @@ function IME:startRunning(header_hint, ui_lang, text_area_custom)
 
     text_area_scroll_offset = -10
     edit_mode = "type"
+    is_first_load_text_area = true
     local text_area_scroll_max_limit = TEXT_AREA_SCROLL_MAX_LIMIT_MINIMUM
     local text_area_scroll_max_limit_buffer = 0
     if header_hint == nil then

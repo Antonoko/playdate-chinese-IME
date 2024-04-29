@@ -14,7 +14,7 @@ local gfx <const> = playdate.graphics
 local screenWidth <const> = playdate.display.getWidth()
 local screenHeight <const> = playdate.display.getHeight()
 
-local NOTE_SCROLL_MAX_LIMIT_MINIMUM <const> = 60
+local NOTE_SCROLL_MAX_LIMIT_MINIMUM <const> = 50
 local note_scroll_max_limit = NOTE_SCROLL_MAX_LIMIT_MINIMUM
 local note_scroll_max_limit_buffer = 0
 local note_scroll_offset = 1
@@ -156,7 +156,7 @@ end
 local user_notes_default <const> = {
     {
         time = get_time_now_as_string(),
-        note = {'欢', '迎', '使', '用', ' ', 'n', 'o', 't', 'e', 's', ' ', '2', '！', '按', ' ', 'A', ' ', '查', '看', '笔', '记', '，', '按', ' ', 'B', ' ', '来', '添', '加', '新', '的', '笔', '记', '。', '\\n', '\\n', '更', '新', '：', '\\n', '-', ' ', '输', '入', '法', '现', '在', '支', '持', '换', '行', '、', '移', '动', '光', '标', '、', '滚', '动', '文', '本', '了', '；', '\\n', '-', '新', '增', '若', '干', '主', '题', '，', '你', '也', '可', '以', '使', '用', '自', '定', '义', '的', '标', '题', '名', '。'},
+        note = {'欢', '迎', '使', '用', ' ', 'n', 'o', 't', 'e', 's', ' ', '2', '！', "\\n", '按', ' ', 'A', ' ', '查', '看', '笔', '记', '，', '按', ' ', 'B', ' ', '来', '添', '加', '新', '的', '笔', '记', '。', '\\n', '\\n', '更', '新', '：', '\\n', '-', ' ', '输', '入', '法', '支', '持', '换', '行', '、', '移', '动', '光', '标', '、', '滚', '屏', '了', '；', '\\n', '-', ' ', '新', '增', '若', '干', '主', '题', '，', '你', '也', '可', '以', '使', '用', '自', '定', '义', '的', '应', '用', '名', '；'},
     },
     {
         time = "2024/4/17  11:56:01",
@@ -205,6 +205,31 @@ function update_note_title()
         gfx.drawTextAligned(user_notes[current_select_note_index].time, 14, 8)
     gfx.popContext()
     note_title_datetime_sprite:setImage(image)
+end
+
+function shallowCopy(original)
+    local copy = {}
+    for key, value in pairs(original) do
+        copy[key] = value
+    end
+    return copy
+end
+
+function remove_char_at_table(table_in, char)
+    local table_op = shallowCopy(table_in)
+    local length = #table_in
+
+    for i = length, 1, -1 do
+        if table_op[i] == char then
+            table.remove(table_op, i)
+        end
+    end
+    -- for key, value in pairs(table_in) do
+    --     if value == char then
+    --         table.remove(table_op, key)
+    --     end
+    -- end
+    return table_op
 end
 
 
@@ -305,7 +330,7 @@ function draw_note_list()
         else
             ellipsis = ""
         end
-        gfx.drawTextInRect(string.sub(concatenateStrings(user_notes[row].note), 1, 96)..ellipsis, x+10, y+5, 350, draw_note_list_size*1.5*2)
+        gfx.drawTextInRect(string.sub(concatenateStrings(remove_char_at_table(user_notes[row].note, "\\n")), 1, 96)..ellipsis, x+10, y+5, 350, draw_note_list_size*1.5*2)
         gfx.setFont(FONT["Roobert_10_halved"].font)
         gfx.drawTextAligned(user_notes[row].time, x+385, y+55, kTextAlignment.right)
     end
@@ -424,10 +449,10 @@ function draw_note_page()
             note_scroll_offset = 1
         end
     elseif playdate.buttonIsPressed( playdate.kButtonDown ) then
-        if note_scroll_offset > 0 and note_scroll_offset < note_scroll_max_limit then
+        if note_scroll_offset > 0 and note_scroll_offset < note_scroll_max_limit -4 then
             note_scroll_offset += 10
             _updateNotePageText()
-        elseif note_scroll_offset > note_scroll_max_limit then
+        elseif note_scroll_offset > note_scroll_max_limit -4 then
             note_scroll_offset = note_scroll_max_limit - 1
         else
             note_scroll_offset = 1
@@ -461,7 +486,7 @@ end
 
 function note_sidebar_option()
     note_menu:removeAllMenuItems()
-    local modeMenuItem, error = note_menu:addMenuItem("Delete", function(value)
+    local modeMenuItem, error = note_menu:addMenuItem("delete note", function(value)
         table.remove(user_notes, current_select_note_index)
         save_state()
         draw_note_list_init = false
