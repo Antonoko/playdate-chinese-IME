@@ -601,6 +601,7 @@ end
 function init()
     load_state()
     update_theme()
+    setInverted(invert_color)
 end
 
 

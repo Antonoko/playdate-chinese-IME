@@ -3,5 +3,5 @@ author=Haru
 description=Chinese notes app for Playdate
 bundleID=com.haru.notes2
 version=2.0
-buildNumber=4
+buildNumber=5
 imagePath=img/launcher
