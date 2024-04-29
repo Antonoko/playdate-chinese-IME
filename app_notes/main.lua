@@ -216,19 +216,18 @@ function shallowCopy(original)
 end
 
 function remove_char_at_table(table_in, char)
-    local table_op = shallowCopy(table_in)
+    local table_op = {}
     local length = #table_in
+    if length > 40 then
+        length = 40
+    end
 
-    for i = length, 1, -1 do
-        if table_op[i] == char then
-            table.remove(table_op, i)
+    for i = 1, length do
+        if table_in[i] ~= char then
+            table.insert(table_op, table_in[i])
         end
     end
-    -- for key, value in pairs(table_in) do
-    --     if value == char then
-    --         table.remove(table_op, key)
-    --     end
-    -- end
+
     return table_op
 end
 

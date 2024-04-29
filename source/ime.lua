@@ -604,7 +604,6 @@ end
 
 
 function switch_to_next_keyboard()
-    -- FIXME: fuck lua disordered table
     clean_keyboard()
     if keyboard_choose == "en" then
         keyboard_choose = "zh"
@@ -1014,6 +1013,7 @@ STAGE["keyboard"] = function()
 
     ---universal operation
     if pd.buttonJustPressed(pd.kButtonB) then
+        --FIXME 可连点
         table.remove(text_area, cursor_pos_index)
         if text_area == nil or #text_area == 0 then
             text_area = {""}

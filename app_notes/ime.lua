@@ -604,7 +604,6 @@ end
 
 
 function switch_to_next_keyboard()
-    -- FIXME: fuck lua disordered table
     clean_keyboard()
     if keyboard_choose == "en" then
         keyboard_choose = "zh"
