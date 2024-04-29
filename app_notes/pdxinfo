@@ -1,0 +1,7 @@
+name=notes2
+author=Haru
+description=Chinese notes app for Playdate
+bundleID=com.haru.notes2
+version=2.0
+buildNumber=4
+imagePath=img/launcher
