@@ -27,6 +27,8 @@ local text_area_scroll_offset = -10
 local TEXT_AREA_SCROLL_MAX_LIMIT_MINIMUM <const> = 60
 local text_area_scroll_max_limit = TEXT_AREA_SCROLL_MAX_LIMIT_MINIMUM
 local text_area_scroll_max_limit_buffer = 0
+local total_line_cnt = 1
+local total_line_cnt_last_render = 1
 local is_first_load_text_area = true
 local cursor_pos_index = 0
 
@@ -928,6 +930,7 @@ function updateTextAreaDisplay(scroll_offset, isforce)
             local current_x = 0
             local current_y = 0 - text_area_scroll_offset
             text_area_scroll_max_limit_buffer = 0
+            total_line_cnt = 0
             gfx.pushContext(textImage)
                 gfx.setFont(FONT["source_san_20"].font)
                 for key, char in pairs(text_area) do
@@ -935,6 +938,7 @@ function updateTextAreaDisplay(scroll_offset, isforce)
                         current_x = 0
                         current_y += lineheight
                         text_area_scroll_max_limit_buffer += lineheight
+                        total_line_cnt += 1
                     else
                         gfx.drawTextAligned(char, current_x, current_y, kTextAlignment.left)
                         current_x += gfx.getTextSize(char)
@@ -944,6 +948,7 @@ function updateTextAreaDisplay(scroll_offset, isforce)
                         current_x = 0
                         current_y += lineheight
                         text_area_scroll_max_limit_buffer += lineheight
+                        total_line_cnt += 1
                     end
 
                     if key == cursor_pos_index then
@@ -958,10 +963,11 @@ function updateTextAreaDisplay(scroll_offset, isforce)
 
         if text_area_scroll_max_limit_buffer > TEXT_AREA_SCROLL_MAX_LIMIT_MINIMUM then
             text_area_scroll_max_limit = text_area_scroll_max_limit_buffer - lineheight*2
-            if is_first_load_text_area then
+            if is_first_load_text_area or ((total_line_cnt ~= total_line_cnt_last_render) and (cursor_pos_index > #text_area - 17)) then --view set to end
                 text_area_scroll_offset = text_area_scroll_max_limit - lineheight*1
                 textImage_push = text_area_render_engine()
                 is_first_load_text_area = false
+                total_line_cnt_last_render = total_line_cnt
             end
         end
 
@@ -1013,7 +1019,10 @@ STAGE["keyboard"] = function()
 
     ---universal operation
     if pd.buttonJustPressed(pd.kButtonB) then
-        table.remove(text_area, cursor_pos_index)
+        --FIXME 可连点
+        if cursor_pos_index > 0 then
+            table.remove(text_area, cursor_pos_index)
+        end
         if text_area == nil or #text_area == 0 then
             text_area = {""}
         else
@@ -1234,6 +1243,7 @@ function IME:startRunning(header_hint, ui_lang, text_area_custom)
     ime_is_user_discard = false
     ime_menu:removeAllMenuItems()
 
+    stage_manager = "keyboard"
     text_area_scroll_offset = -10
     edit_mode = "type"
     is_first_load_text_area = true
