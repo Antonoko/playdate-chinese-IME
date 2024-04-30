@@ -1014,7 +1014,9 @@ STAGE["keyboard"] = function()
     ---universal operation
     if pd.buttonJustPressed(pd.kButtonB) then
         --FIXME 可连点
-        table.remove(text_area, cursor_pos_index)
+        if cursor_pos_index > 0 then
+            table.remove(text_area, cursor_pos_index)
+        end
         if text_area == nil or #text_area == 0 then
             text_area = {""}
         else
@@ -1235,6 +1237,7 @@ function IME:startRunning(header_hint, ui_lang, text_area_custom)
     ime_is_user_discard = false
     ime_menu:removeAllMenuItems()
 
+    stage_manager = "keyboard"
     text_area_scroll_offset = -10
     edit_mode = "type"
     is_first_load_text_area = true
