@@ -173,7 +173,7 @@ def json_to_xls():
         save_name = "note_" + datetime.datetime.strftime(datetime.datetime.now(), "%Y%m%d%H%M%S") + ".xlsx"
         wb.save(save_name)
         # df_note.to_excel(save_name, index=False)
-        print("""
+        print(f"""
 
             转换完成！请查看目录下的 {save_name} 文件。
 """)
