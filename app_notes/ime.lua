@@ -1258,7 +1258,7 @@ STAGE["zh_word_menu"] = function()
         table.insert(text_area, cursor_pos_index+1, candidate_words)
         cursor_pos_index += 1
         exit_zh_word_menu()
-    elseif pd.buttonJustPressed(pd.kButtonB) then
+    elseif pd.buttonJustPressed(pd.kButtonB) or pd.buttonJustPressed(pd.kButtonA) then
         exit_zh_word_menu()
     end
 end
