@@ -207,7 +207,10 @@ def xls_to_json():
         note_lst = []
         for index, row in df_note.iterrows():
             note_dict = {}
-            note_dict["time"] = row["time"]
+            if type(row["time"]) is datetime.datetime:
+                note_dict["time"] = datetime.datetime.strftime(row["time"], "%Y/%m/%d %H:%M:%S")
+            else:
+                note_dict["time"] = str(row["time"])
             note_dict["note"] = turn_str_lst(row["note"])
             note_lst.append(note_dict)
         dict_to_write = {}
