@@ -170,7 +170,7 @@ local user_notes_default <const> = {
     },
     {
         time = get_time_now_as_string(),
-        note = {'试', '着', '进', '入', '笔', '记', '后', '删', '除', '我', '吧', '！', '（', '按', '下', '菜', '单', '键', '后', '选', '择', ' ', 'd', 'e', 'l', 'e', 't', 'e', ' ', 'n', 'o', 't', 'e', '）'},
+        note = {'试', '着', '进', '入', '笔', '记', '后', '删', '除', '我', '吧', '！', '\\n', '（', '按', '下', '菜', '单', '键', '后', '选', '择', ' ', 'd', 'e', 'l', 'e', 't', 'e', ' ', 'n', 'o', 't', 'e', '）'},
     }
 }
 
@@ -313,7 +313,7 @@ function draw_note_list()
         draw_note_list_size = gfx.getTextSize("我")
         draw_note_list_gridview = pd.ui.gridview.new(0, draw_note_list_size*1.5*2+15)
         draw_note_list_gridview:setNumberOfRows((#user_notes))
-        draw_note_list_gridview:setCellPadding(0,0,2,2)
+        draw_note_list_gridview:setCellPadding(0,0,4,0)
         draw_note_list_gridview:setSectionHeaderHeight(42)
 
         draw_note_list_gridviewSprite = gfx.sprite.new()

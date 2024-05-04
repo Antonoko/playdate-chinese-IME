@@ -31,6 +31,7 @@ local total_line_cnt = 1
 local total_line_cnt_last_render = 1
 local is_first_load_text_area = true
 local cursor_pos_index = 0
+local cursor_skip_cnt_sensitivity = 10
 
 local cap_select_index = 1
 local cap_select_index_lazy_update = 1
@@ -1054,18 +1055,22 @@ STAGE["keyboard"] = function()
     end
 
     ---universal operation
-    if pd.buttonJustPressed(pd.kButtonB) then
-        --FIXME 可连点
-        if cursor_pos_index > 0 then
-            table.remove(text_area, cursor_pos_index)
+    if pd.buttonIsPressed(pd.kButtonB) then
+        cursor_skip_cnt_sensitivity += 1
+        if cursor_skip_cnt_sensitivity > 5 then
+            cursor_skip_cnt_sensitivity = 0
+            if cursor_pos_index > 0 then
+                table.remove(text_area, cursor_pos_index)
+            end
+            if text_area == nil or #text_area == 0 then
+                text_area = {""}
+                cursor_pos_index = 1
+            else
+                cursor_pos_index -= 1
+            end
+            SFX.key.sound:play()
         end
-        if text_area == nil or #text_area == 0 then
-            text_area = {""}
-            cursor_pos_index = 1
-        else
-            cursor_pos_index -= 1
-        end
-        SFX.key.sound:play()
+
     elseif pd.buttonJustPressed(pd.kButtonA) then
         switch_to_next_keyboard()
         SFX.key.sound:play()
@@ -1144,7 +1149,6 @@ STAGE["keyboard"] = function()
 
 end
 
-local cursor_skip_cnt_sensitivity = 5
 STAGE["cursor_mode"] = function()
     local crankTicks = pd.getCrankTicks(20)
     local change, acceleratedChange = playdate.getCrankChange()
@@ -1187,7 +1191,7 @@ STAGE["cursor_mode"] = function()
     end
 
     if pd.buttonJustReleased(pd.kButtonLeft) or pd.buttonJustReleased(pd.kButtonRight) then
-        cursor_skip_cnt_sensitivity = 5
+        cursor_skip_cnt_sensitivity = 10
     end
 
     if updateTextAreaCondition then
