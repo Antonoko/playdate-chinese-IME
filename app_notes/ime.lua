@@ -518,6 +518,37 @@ end
 
 --------------------------------------------core
 
+local transform_animation_init = true
+local transform_animation_finish, transform_animation_cnt, transform_animation_sprite, transform_animation_map
+function transform_animation()
+    if transform_animation_init then
+        transform_animation_cnt = 1
+        transform_animation_finish = false
+        transform_animation_sprite = gfx.sprite.new()
+        transform_animation_sprite:setCenter(0,0)
+        transform_animation_sprite:moveTo(0,0)
+        transform_animation_sprite:setZIndex(10000)
+        transform_animation_sprite:add()
+        transform_animation_map = {
+            0.8, 0.6, 0.4, 0.2, 0
+        }
+        transform_animation_init = false
+    end
+
+    if transform_animation_finish then
+        return
+    end
+
+    local image = gfx.image.new(screenWidth, screenHeight, pd.graphics.kColorWhite)
+    if transform_animation_cnt < #transform_animation_map +1 then
+        transform_animation_sprite:setImage(image:fadedImage(transform_animation_map[transform_animation_cnt], playdate.graphics.image.kDitherTypeScreen))
+        transform_animation_cnt += 1
+    else
+        transform_animation_finish = true
+    end
+end
+
+
 function draw_header(header_text, lang)
     if header_text == nil then
         header_text = "请输入"
@@ -932,6 +963,10 @@ function updateTextAreaDisplay(scroll_offset, isforce)
             text_area_scroll_max_limit_buffer = 0
             total_line_cnt = 0
             gfx.pushContext(textImage)
+                if cursor_pos_index == 0 then
+                    CURSOR_IMG:draw(-5, current_y-4)
+                end
+
                 gfx.setFont(FONT["source_san_20"].font)
                 for key, char in pairs(text_area) do
                     if char == "\\n" then --\n 强制换行
@@ -961,6 +996,7 @@ function updateTextAreaDisplay(scroll_offset, isforce)
         end
         textImage_push = text_area_render_engine()
 
+        -- put multiline text bottom
         if text_area_scroll_max_limit_buffer > TEXT_AREA_SCROLL_MAX_LIMIT_MINIMUM then
             text_area_scroll_max_limit = text_area_scroll_max_limit_buffer - lineheight*2
             if is_first_load_text_area or ((total_line_cnt ~= total_line_cnt_last_render) and (cursor_pos_index > #text_area - 17)) then --view set to end
@@ -1025,6 +1061,7 @@ STAGE["keyboard"] = function()
         end
         if text_area == nil or #text_area == 0 then
             text_area = {""}
+            cursor_pos_index = 1
         else
             cursor_pos_index -= 1
         end
@@ -1154,8 +1191,8 @@ STAGE["cursor_mode"] = function()
     end
 
     if updateTextAreaCondition then
-        if cursor_pos_index < 1 then
-            cursor_pos_index = 1
+        if cursor_pos_index < 0 then
+            cursor_pos_index = 0
         end
         if cursor_pos_index > #text_area then
             cursor_pos_index = #text_area
@@ -1247,6 +1284,7 @@ function IME:startRunning(header_hint, ui_lang, text_area_custom)
     text_area_scroll_offset = -10
     edit_mode = "type"
     is_first_load_text_area = true
+    transform_animation_init = true
     local text_area_scroll_max_limit = TEXT_AREA_SCROLL_MAX_LIMIT_MINIMUM
     local text_area_scroll_max_limit_buffer = 0
     if header_hint == nil then
@@ -1264,6 +1302,8 @@ function IME:startRunning(header_hint, ui_lang, text_area_custom)
         text_area = shallowCopy(text_area_custom)
         cursor_pos_index = #text_area
     end
+    
+    transform_animation()
 
     text_area_sprite:setCenter(0, 0)
     text_area_sprite:moveTo(25,36)
@@ -1287,8 +1327,10 @@ function IME:startRunning(header_hint, ui_lang, text_area_custom)
 end
 
 function IME:update()
+    transform_animation()
+
     STAGE[stage_manager]()
-    updateTextAreaDisplay(text_area_scroll_offset)
+    updateTextAreaDisplay(text_area_scroll_offset) 
     return text_area
 end
 
