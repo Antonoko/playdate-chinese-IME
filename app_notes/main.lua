@@ -233,6 +233,26 @@ function remove_char_at_table(table_in, char)
     return table_op
 end
 
+function count_text_area_lines(text_table)
+    local line_cnt = 0
+    gfx.setFont(FONT["source_san_20"].font)
+    local current_x = 10
+    local max_zh_char_size = gfx.getTextSize("啊")
+    for key, char in pairs(text_table) do
+        if char == "\\n" then --\n 强制换行
+            current_x = 10
+            line_cnt += 1
+        else
+            current_x += gfx.getTextSize(char)
+        end
+        
+        if current_x > 390 - max_zh_char_size then
+            current_x = 10
+            line_cnt += 1
+        end
+    end
+    return line_cnt
+end
 
 -- Save the state of the game to the datastore
 function save_state()
@@ -293,7 +313,7 @@ function draw_note_list()
         draw_note_list_size = gfx.getTextSize("我")
         draw_note_list_gridview = pd.ui.gridview.new(0, draw_note_list_size*1.5*2+15)
         draw_note_list_gridview:setNumberOfRows((#user_notes))
-        draw_note_list_gridview:setCellPadding(2,2,2,2)
+        draw_note_list_gridview:setCellPadding(0,0,2,2)
         draw_note_list_gridview:setSectionHeaderHeight(42)
 
         draw_note_list_gridviewSprite = gfx.sprite.new()
@@ -319,7 +339,7 @@ function draw_note_list()
 
     function draw_note_list_gridview:drawCell(section, row, column, selected, x, y, width, height)
         if selected then
-            gfx.fillRoundRect(x, y, width, height, 4)
+            gfx.fillRoundRect(x, y, width, height, 10)
             gfx.setImageDrawMode(gfx.kDrawModeFillWhite)
         else
             gfx.setImageDrawMode(gfx.kDrawModeCopy)
@@ -407,19 +427,23 @@ end
 local draw_note_page_init = false
 function draw_note_page()
     function _updateNotePageText()
-        local image = gfx.image.new(400,240)
+        local max_zh_char_size = gfx.getTextSize("啊")
+        local lineheight = max_zh_char_size * 1.4
+        local line_cnt = count_text_area_lines(user_notes[current_select_note_index].note)
+        local image = gfx.image.new(400,(line_cnt+1)*lineheight)
+        note_scroll_max_limit_buffer = line_cnt * lineheight
+        if note_scroll_max_limit_buffer > NOTE_SCROLL_MAX_LIMIT_MINIMUM then
+            note_scroll_max_limit = note_scroll_max_limit_buffer
+        end
+
         gfx.pushContext(image)
             gfx.setFont(FONT["source_san_20"].font)
             local current_x = 10
-            local current_y = 35 - note_scroll_offset
-            local max_zh_char_size = gfx.getTextSize("啊")
-            local lineheight = max_zh_char_size * 1.4
-            note_scroll_max_limit_buffer = 0
+            local current_y = 0
             for key, char in pairs(user_notes[current_select_note_index].note) do
                 if char == "\\n" then --\n 强制换行
                     current_x = 10
                     current_y += lineheight
-                    note_scroll_max_limit_buffer += lineheight
                 else
                     gfx.drawTextAligned(char, current_x, current_y, kTextAlignment.left)
                     current_x += gfx.getTextSize(char)
@@ -428,13 +452,8 @@ function draw_note_page()
                 if current_x > 390 - max_zh_char_size then
                     current_x = 10
                     current_y += lineheight
-                    note_scroll_max_limit_buffer += lineheight
                 end
             end 
-
-            if note_scroll_max_limit_buffer > NOTE_SCROLL_MAX_LIMIT_MINIMUM then
-                note_scroll_max_limit = note_scroll_max_limit_buffer
-            end
         gfx.popContext()
         NOTE_CONTENT_SPRITE:setImage(image)
     end
@@ -456,7 +475,7 @@ function draw_note_page()
     if change ~= 0 then
         if note_scroll_offset > 0 and note_scroll_offset < note_scroll_max_limit then
             note_scroll_offset += change/2
-            _updateNotePageText()
+            NOTE_CONTENT_SPRITE:moveTo(0, 35-note_scroll_offset)
         elseif note_scroll_offset > note_scroll_max_limit then
             note_scroll_offset = note_scroll_max_limit - 1
         else
@@ -467,7 +486,7 @@ function draw_note_page()
     if playdate.buttonIsPressed( playdate.kButtonUp ) then
         if note_scroll_offset > 0 and note_scroll_offset < note_scroll_max_limit then
             note_scroll_offset -= 10
-            _updateNotePageText()
+            NOTE_CONTENT_SPRITE:moveTo(0, 35-note_scroll_offset)
         elseif note_scroll_offset > note_scroll_max_limit then
             note_scroll_offset = note_scroll_max_limit - 1
         else
@@ -476,7 +495,7 @@ function draw_note_page()
     elseif playdate.buttonIsPressed( playdate.kButtonDown ) then
         if note_scroll_offset > 0 and note_scroll_offset < note_scroll_max_limit -4 then
             note_scroll_offset += 10
-            _updateNotePageText()
+            NOTE_CONTENT_SPRITE:moveTo(0, 35-note_scroll_offset)
         elseif note_scroll_offset > note_scroll_max_limit -4 then
             note_scroll_offset = note_scroll_max_limit - 1
         else
@@ -502,7 +521,7 @@ function draw_note_page_animation(type)
             NOTE_TIP_SPRITE:moveTo(draw_note_page_animator:currentValue(), screenHeight-32)
             SKIN_NOTE_TITLE_SPRITE:moveTo(draw_note_page_animator:currentValue(), 0)
             note_title_datetime_sprite:moveTo(draw_note_page_animator:currentValue(), 0)
-            NOTE_CONTENT_SPRITE:moveTo(draw_note_page_animator:currentValue(), 0)
+            NOTE_CONTENT_SPRITE:moveTo(draw_note_page_animator:currentValue(), 35)
         end
     end
 
