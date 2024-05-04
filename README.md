@@ -15,8 +15,8 @@ A Notes application is provided as a usage example. You can download it in [rele
 ## 如何使用 notes 与电脑端的同步编辑工具？
 ![sync-tool-screenshot.png](https://github.com/Antonoko/playdate-chinese-IME/blob/main/__asset__/sync-tool-screenshot.png?raw=true)
 1. 安装 [python](https://www.python.org/downloads/release/python-3119/)
-2. 在 GitHub 顶部 Code 中点击 Download ZIP
-3. 解压后，进入目录 sync-tool
+2. 在 GitHub 顶部 `Code` 按钮中点击 `Download ZIP`
+3. 解压后，进入目录 `sync-tool`
 4. 在目录下执行命令：`pip install -r requirements.txt`，安装所需依赖
 5. 在目录下执行 `python sync.py` 打开工具
 
