@@ -20,6 +20,9 @@ A Notes application is provided as a usage example. You can download it in [rele
 4. 在目录下执行命令：`pip install -r requirements.txt`，安装所需依赖
 5. 在目录下执行 `python sync.py` 打开工具
 
+tips:
+- 在 excel 中编辑时，需要换行地方可以写 `\n`
+
 ## How to embed IME into your app
 1. Duplicate files under `source` to your project directory;
 2. Code snippet reference:
