@@ -927,6 +927,8 @@ function drawZhWordMenu(pinyin)
         select_pos["column"] = drawZhWordMenu_selection_index
     end
     drawZhWordMenu_gridview:setSelection(1, select_pos.row, select_pos.column)
+    drawZhWordMenu_gridview:scrollToCell(1, select_pos.row, select_pos.column)
+    print(select_pos.row, select_pos.column)
 
     candidate_words = ZH_WORD_LIST[pinyin][drawZhWordMenu_selection_index]
 
@@ -1076,6 +1078,10 @@ STAGE["keyboard"] = function()
         SFX.key.sound:play()
     end
 
+    if pd.buttonJustReleased(pd.kButtonB) then
+        cursor_skip_cnt_sensitivity = 10
+    end
+
     function cap_type_state_switcher_zh(direction)
         if keyboard_map[cap_select_index].type == "consonant" then
             if direction == "u" then
@@ -1222,6 +1228,8 @@ STAGE["vowel_menu"] = function()
             if vowel_selection_result == "newline" or vowel_selection_result == "换行" then
                 table.insert(text_area, cursor_pos_index+1, "\\n")
                 cursor_pos_index += 1
+            elseif vowel_selection_result == "emoji" then
+                stage_manager = "zh_word_menu"
             else
                 table.insert(text_area, cursor_pos_index+1, vowel_selection_result)
                 cursor_pos_index += 1
@@ -1258,7 +1266,7 @@ STAGE["zh_word_menu"] = function()
         table.insert(text_area, cursor_pos_index+1, candidate_words)
         cursor_pos_index += 1
         exit_zh_word_menu()
-    elseif pd.buttonJustPressed(pd.kButtonB) or pd.buttonJustPressed(pd.kButtonA) then
+    elseif pd.buttonJustPressed(pd.kButtonA) then
         exit_zh_word_menu()
     end
 end
