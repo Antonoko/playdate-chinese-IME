@@ -341,6 +341,9 @@ function draw_note_list()
         if selected then
             gfx.fillRoundRect(x, y, width, height, 10)
             gfx.setImageDrawMode(gfx.kDrawModeFillWhite)
+            if row == #user_notes then
+                gfx.fillRect(x, y+height-10, width, height)
+            end
         else
             gfx.setImageDrawMode(gfx.kDrawModeCopy)
         end
