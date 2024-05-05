@@ -786,7 +786,7 @@ function drawVowelMenu(initial_consonant, vowel, enable_zh_font)
 
     if drawVowelMenu_init == false then
         if enable_zh_font == true then
-            gfx.setFont(FONT["source_san"].font)
+            gfx.setFont(FONT["source_san_20"].font)
             drawVowelMenu_text_size = gfx.getTextSize("我")
         else
             gfx.setFont(FONT["roobert"].font)
@@ -815,7 +815,7 @@ function drawVowelMenu(initial_consonant, vowel, enable_zh_font)
             gfx.setImageDrawMode(gfx.kDrawModeCopy)
         end
         if enable_zh_font == true then
-            gfx.setFont(FONT["source_san"].font)
+            gfx.setFont(FONT["source_san_20"].font)
             gfx.drawTextAligned(VOWEL_LIST_OPTION[initial_consonant][vowel][row], x+40, y+5)       
         else
             gfx.setFont(FONT["roobert"].font)
@@ -858,6 +858,7 @@ end
 local drawZhWordMenu_init = false
 local drawZhWordMenu_text_size, drawZhWordMenu_gridview, drawZhWordMenu_gridviewSprite, drawZhWordMenu_selection_index
 function drawZhWordMenu(pinyin)
+    local NumberOfColumns = 11
     if not tableHasKey(ZH_WORD_LIST, pinyin) then
         return
     end
@@ -865,16 +866,16 @@ function drawZhWordMenu(pinyin)
     if drawZhWordMenu_init == false then
         drawZhWordMenu_selection_index = 1
 
-        gfx.setFont(FONT["source_san"].font)
+        gfx.setFont(FONT["source_san_20"].font)
         drawZhWordMenu_text_size = gfx.getTextSize("我")
         drawZhWordMenu_gridview = pd.ui.gridview.new(drawZhWordMenu_text_size*1.5, drawZhWordMenu_text_size*1.5)
-        drawZhWordMenu_gridview:setNumberOfRows((#ZH_WORD_LIST[pinyin] // 10) + 1)
-        drawZhWordMenu_gridview:setNumberOfColumns(10)
+        drawZhWordMenu_gridview:setNumberOfRows((#ZH_WORD_LIST[pinyin] // NumberOfColumns) + 1)
+        drawZhWordMenu_gridview:setNumberOfColumns(NumberOfColumns)
         drawZhWordMenu_gridview:setCellPadding(2,2,2,2)
         drawZhWordMenu_gridview:setSectionHeaderHeight(24)
 
         drawZhWordMenu_gridviewSprite = gfx.sprite.new()
-        drawZhWordMenu_gridviewSprite:moveTo(200, 120)
+        drawZhWordMenu_gridviewSprite:moveTo(210, 120)
         drawZhWordMenu_gridviewSprite:setZIndex(300+zindex_start_offset)
         drawZhWordMenu_gridviewSprite:add()
 
@@ -886,7 +887,7 @@ function drawZhWordMenu(pinyin)
     function drawZhWordMenu_gridview:drawSectionHeader(section, x, y, width, height)
         gfx.setFont(FONT["roobert"].font)
         gfx.drawTextAligned(pinyin, x+6, y+4, kTextAlignment.left)
-        ZH_WORD_TIP_IMG:draw(screenWidth-120, y+2)
+        ZH_WORD_TIP_IMG:draw(screenWidth-130-20, y+2)
     end
 
     function drawZhWordMenu_gridview:drawCell(section, row, column, selected, x, y, width, height)
@@ -896,9 +897,9 @@ function drawZhWordMenu(pinyin)
         else
             gfx.setImageDrawMode(gfx.kDrawModeCopy)
         end
-        gfx.setFont(FONT["source_san"].font)
-        if (((row-1)*10)+column) < #ZH_WORD_LIST[pinyin] + 1 then
-            gfx.drawTextAligned(ZH_WORD_LIST[pinyin][((row-1)*10)+column], x+(drawZhWordMenu_text_size*1.5-drawZhWordMenu_text_size)/2, y+(drawZhWordMenu_text_size*1.5-drawZhWordMenu_text_size)/2)
+        gfx.setFont(FONT["source_san_20"].font)
+        if (((row-1)*NumberOfColumns)+column) < #ZH_WORD_LIST[pinyin] + 1 then
+            gfx.drawTextAligned(ZH_WORD_LIST[pinyin][((row-1)*NumberOfColumns)+column], x+(drawZhWordMenu_text_size*1.5-drawZhWordMenu_text_size)/2, y+(drawZhWordMenu_text_size*1.5-drawZhWordMenu_text_size)/2)
         end
     end
 
@@ -914,13 +915,13 @@ function drawZhWordMenu(pinyin)
     end
 
     local select_pos = {}
-    if drawZhWordMenu_selection_index > 10 then
-        if drawZhWordMenu_selection_index % 10 == 0 then
-            select_pos["row"] = drawZhWordMenu_selection_index//10
-            select_pos["column"] = 10
+    if drawZhWordMenu_selection_index > NumberOfColumns then
+        if drawZhWordMenu_selection_index % NumberOfColumns == 0 then
+            select_pos["row"] = drawZhWordMenu_selection_index//NumberOfColumns
+            select_pos["column"] = NumberOfColumns
         else
-            select_pos["row"] = drawZhWordMenu_selection_index//10 + 1
-            select_pos["column"] = drawZhWordMenu_selection_index % 10
+            select_pos["row"] = drawZhWordMenu_selection_index//NumberOfColumns + 1
+            select_pos["column"] = drawZhWordMenu_selection_index % NumberOfColumns
         end
     else
         select_pos["row"] = 1
@@ -928,7 +929,6 @@ function drawZhWordMenu(pinyin)
     end
     drawZhWordMenu_gridview:setSelection(1, select_pos.row, select_pos.column)
     drawZhWordMenu_gridview:scrollToCell(1, select_pos.row, select_pos.column)
-    print(select_pos.row, select_pos.column)
 
     candidate_words = ZH_WORD_LIST[pinyin][drawZhWordMenu_selection_index]
 
@@ -1032,6 +1032,11 @@ STAGE["keyboard"] = function()
         crankPosition_keyboard = math.floor(crankPosition_keyboard) % 360
     end
     cap_select_index = mapValue(crankPosition_keyboard, 0, 360, 1, #keyboard_map + 1)
+    if cap_select_index > #keyboard_map then
+        cap_select_index = #keyboard_map
+    elseif cap_select_index < 1 then
+        cap_select_index = 1
+    end
     choose_cap(keyboard_map[cap_select_index].name)
 
     if keyboard_choose == "en" then
@@ -1228,8 +1233,6 @@ STAGE["vowel_menu"] = function()
             if vowel_selection_result == "newline" or vowel_selection_result == "换行" then
                 table.insert(text_area, cursor_pos_index+1, "\\n")
                 cursor_pos_index += 1
-            elseif vowel_selection_result == "emoji" then
-                stage_manager = "zh_word_menu"
             else
                 table.insert(text_area, cursor_pos_index+1, vowel_selection_result)
                 cursor_pos_index += 1
