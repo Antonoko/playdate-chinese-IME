@@ -4,9 +4,13 @@
 
 这是一个可以在 Playdate 上以较高效率输入中文与英文的输入法。
 
+支持功能：中文双拼单字输入、emoji 与快捷短语、英文与数字键盘、输入光标滚动。
+
 提供了一个便签应用作为使用示例，你可以在 [release](https://github.com/Antonoko/playdate-chinese-IME/releases/tag/notes) 中下载后 sideload 体验。你也可以把输入法嵌入到你的游戏或应用中进行使用。
 
 This is an input method that can input Chinese and English with high efficiency on Playdate.
+
+Supported functions: Chinese double-pin single word input, emoji and shortcut phrases, English and numeric keyboard, input cursor scrolling.
 
 A Notes application is provided as a usage example. You can download it in [release](https://github.com/Antonoko/playdate-chinese-IME/releases/tag/notes) and sideload on your Playdate to experience. You can also embed the input method into your game or application.
 
