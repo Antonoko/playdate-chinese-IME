@@ -562,7 +562,7 @@ function main_page_sidebar_option()
 
     local modeMenuItem, error = note_menu:addMenuItem("Custom Name", function(value)
         add_white_under_keyboard(true)
-        zh_ime:startRunning("自定义标题", "zh", user_custom_name)
+        zh_ime:startRunning("自定义标题", "zh", user_custom_name, "zh")
         stage_manager = "edit_custom_name"
     end)
 
@@ -597,7 +597,7 @@ STAGE["main_screen"] = function()
         SFX.click.sound:play()
         add_white_under_keyboard(true)
         editor_mode = "new"
-        zh_ime:startRunning("新建笔记", "zh", {})
+        zh_ime:startRunning("新建笔记", "zh", {}, "zh")
         stage_manager = "note_edit"
     end
 end
@@ -612,7 +612,7 @@ STAGE["note_details"] = function()
         SFX.click.sound:play()
         add_white_under_keyboard(true)
         editor_mode = "edit"
-        zh_ime:startRunning("修改笔记", "zh", user_notes[current_select_note_index].note)
+        zh_ime:startRunning("修改笔记", "zh", user_notes[current_select_note_index].note, "zh")
         stage_manager = "note_edit"
     elseif pd.buttonJustPressed(pd.kButtonB) then
         SFX.slide_out.sound:play()

@@ -414,6 +414,111 @@ local CAPS_MAP_EN <const> = {
         type = "symbol",
     },
 }
+local CAPS_MAP_NUM <const> = {
+    {
+        name = "1",
+        index = 36,
+        sprite = gfx.sprite.new(CAPS_IMG[36]),
+        type = "alphabet",
+    },
+    {
+        name = "2",
+        index = 37,
+        sprite = gfx.sprite.new(CAPS_IMG[37]),
+        type = "alphabet",
+    },
+    {
+        name = "3",
+        index = 38,
+        sprite = gfx.sprite.new(CAPS_IMG[38]),
+        type = "alphabet",
+    },
+    {
+        name = "4",
+        index = 39,
+        sprite = gfx.sprite.new(CAPS_IMG[39]),
+        type = "alphabet",
+    },
+    {
+        name = "5",
+        index = 40,
+        sprite = gfx.sprite.new(CAPS_IMG[40]),
+        type = "alphabet",
+    },
+    {
+        name = "6",
+        index = 41,
+        sprite = gfx.sprite.new(CAPS_IMG[41]),
+        type = "alphabet",
+    },
+    {
+        name = "7",
+        index = 42,
+        sprite = gfx.sprite.new(CAPS_IMG[42]),
+        type = "alphabet",
+    },
+    {
+        name = "8",
+        index = 43,
+        sprite = gfx.sprite.new(CAPS_IMG[43]),
+        type = "alphabet",
+    },
+    {
+        name = "9",
+        index = 44,
+        sprite = gfx.sprite.new(CAPS_IMG[44]),
+        type = "alphabet",
+    },
+    {
+        name = "0",
+        index = 45,
+        sprite = gfx.sprite.new(CAPS_IMG[45]),
+        type = "alphabet",
+    },
+    {
+        name = ".",
+        index = 46,
+        sprite = gfx.sprite.new(CAPS_IMG[46]),
+        type = "alphabet",
+    },
+    {
+        name = "/",
+        index = 47,
+        sprite = gfx.sprite.new(CAPS_IMG[47]),
+        type = "alphabet",
+    },
+    {
+        name = "-",
+        index = 48,
+        sprite = gfx.sprite.new(CAPS_IMG[48]),
+        type = "alphabet",
+    },
+    {
+        name = "?",
+        index = 49,
+        sprite = gfx.sprite.new(CAPS_IMG[49]),
+        type = "alphabet",
+    },
+    {
+        name = "=",
+        index = 50,
+        sprite = gfx.sprite.new(CAPS_IMG[50]),
+        type = "alphabet",
+    },
+    {
+        name = "&",
+        index = 51,
+        sprite = gfx.sprite.new(CAPS_IMG[51]),
+        type = "alphabet",
+    },
+    {
+        name = "SYMBOL",
+        index = 35,
+        sprite = gfx.sprite.new(CAPS_IMG[35]),
+        type = "symbol",
+    },
+}
+
 local KEYBOARD_ZH_LAYOUT <const> = {
     10,
     10,
@@ -423,6 +528,10 @@ local KEYBOARD_EN_LAYOUT <const> = {
     10,
     9,
     8,
+}
+local KEYBOARD_NUM_LAYOUT <const> = {
+    10,
+    7,
 }
 local KEYBOARD_CONFIG_LIST <const> = {
     zh = {
@@ -435,6 +544,11 @@ local KEYBOARD_CONFIG_LIST <const> = {
         keyboard_layout = KEYBOARD_EN_LAYOUT,
         caps_sub_sprite_index = 2,
     },
+    num = {
+        keyboard_map = CAPS_MAP_NUM,
+        keyboard_layout = KEYBOARD_NUM_LAYOUT,
+        caps_sub_sprite_index = 3,
+    }
 }
 local VOWEL_LIST_OPTION <const> = json.decodeFile("ime_src/data/zh_vowel.json")
 local ZH_WORD_LIST <const> = json.decodeFile("ime_src/data/zh_word.json")
@@ -639,10 +753,12 @@ end
 
 function switch_to_next_keyboard()
     clean_keyboard()
-    if keyboard_choose == "en" then
-        keyboard_choose = "zh"
-    elseif keyboard_choose == "zh" then
+    if keyboard_choose == "zh" then
         keyboard_choose = "en"
+    elseif keyboard_choose == "en" then
+        keyboard_choose = "num"
+    elseif keyboard_choose == "num" then
+        keyboard_choose = "zh"
     end
     switch_keyboard()
     draw_keyboard()
@@ -689,7 +805,7 @@ function draw_keyboard_hint()
 
         gfx.pushContext(image)
             DPAD_HINT_IMG[1]:draw(0, 0)
-            if keyboard_choose == "en" then
+            if keyboard_choose == "en" or keyboard_choose == "num" then
                 DPAD_HINT_IMG[1]:draw(0, 0)
                 if en_cap_lock then
                     DPAD_HINT_IMG[9]:draw(0, 0)
@@ -1059,6 +1175,16 @@ STAGE["keyboard"] = function()
         elseif pd.buttonJustPressed(pd.kButtonRight) then
             cap_type_state_switcher_zh("r")
         end
+    elseif keyboard_choose == "num" then
+        if pd.buttonJustPressed(pd.kButtonUp) then
+            cap_type_state_switcher_en("u")
+        elseif pd.buttonJustPressed(pd.kButtonDown) then
+            cap_type_state_switcher_en("d")
+        elseif pd.buttonJustPressed(pd.kButtonLeft) then
+            cap_type_state_switcher_en("l")
+        elseif pd.buttonJustPressed(pd.kButtonRight) then
+            cap_type_state_switcher_en("r")
+        end
     end
 
     ---universal operation
@@ -1290,7 +1416,8 @@ function IME:init()
 	IME.super.init(self)
 end
 
-function IME:startRunning(header_hint, ui_lang, text_area_custom)
+function IME:startRunning(header_hint, ui_lang, text_area_custom, keyboard_init)
+    -- keyboard_init: "zh", "en", "num"
     ime_is_running = true
     ime_is_user_discard = false
     ime_menu:removeAllMenuItems()
@@ -1316,6 +1443,11 @@ function IME:startRunning(header_hint, ui_lang, text_area_custom)
     else
         text_area = shallowCopy(text_area_custom)
         cursor_pos_index = #text_area
+    end
+    if keyboard_init == nil then
+        keyboard_choose = "zh"
+    else
+        keyboard_choose = keyboard_init
     end
     
     transform_animation()

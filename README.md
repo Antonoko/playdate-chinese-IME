@@ -31,8 +31,8 @@ import 'ime'
 
 -- initialization IME
 -- You can specify the prompt title and UI language during input(zh/en)
-local zh_ime = IME("Input your text", "en", {"s","a","m","p","l","e"})
---local zh_ime = IME("请输入笔记", "zh", {"示","例","文","本"})
+local zh_ime = IME("Input your text", "en", {"s","a","m","p","l","e"}, "en")
+--local zh_ime = IME("请输入笔记", "zh", {"示","例","文","本"}, "zh")
 
 --Start calling the IME method
 zh_ime:startRunning()
