@@ -30,12 +30,17 @@ tips:
 import 'ime'
 
 -- initialization IME
--- You can specify the prompt title and UI language during input(zh/en)
-local zh_ime = IME("Input your text", "en", {"s","a","m","p","l","e"}, "en")
---local zh_ime = IME("请输入笔记", "zh", {"示","例","文","本"}, "zh")
+local zh_ime = IME()
 
 --Start calling the IME method
-zh_ime:startRunning()
+--IME:startRunning(header_hint, ui_lang, text_area_custom, keyboard_init)
+-- header_hint: Title hint, string
+-- ui_lang: You can specify the prompt title and UI language during input(zh/en)
+-- text_area_custom: Character-by-character table
+-- keyboard_init: Specified init keyboard as "zh", "en", "num"
+
+zh_ime:startRunning("Input your text", "en", {"s","a","m","p","l","e"}, "en")
+--zh_ime:startRunning("请输入笔记", "zh", {"示","例","文","本"}, "zh")
 
 function playdate.update()
     gfx.sprite.update()
