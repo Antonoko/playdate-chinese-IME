@@ -694,6 +694,19 @@ function draw_header(header_text, lang)
     header_sprite:add()
 end
 
+function add_white_under_keyboard(active)
+    local WHITE_MASK_IMG = gfx.image.new("ime_src/img/white")
+    local WHITE_MASK_SPRITE = gfx.sprite.new(WHITE_MASK_IMG)
+    WHITE_MASK_SPRITE:setCenter(0,0)
+    WHITE_MASK_SPRITE:moveTo(0,0)
+    WHITE_MASK_SPRITE:setZIndex(zindex_start_offset-10)
+    if active then
+        WHITE_MASK_SPRITE:add()
+    else
+        WHITE_MASK_SPRITE:remove()
+    end
+end
+
 
 function sidebar_option()
     local modeMenuItem, error = ime_menu:addMenuItem("- Discard", function(value)
@@ -1403,6 +1416,7 @@ end
 --------------------------------------------
 
 function ime_exit()
+    add_white_under_keyboard(false)
     ime_menu:removeAllMenuItems()
     gfx.sprite.removeAll()
     ime_is_running = false
@@ -1418,6 +1432,9 @@ end
 
 function IME:startRunning(header_hint, ui_lang, text_area_custom, keyboard_init)
     -- keyboard_init: "zh", "en", "num"
+    gfx.setImageDrawMode(playdate.graphics.kDrawModeCopy)
+    add_white_under_keyboard(true)
+    
     ime_is_running = true
     ime_is_user_discard = false
     ime_menu:removeAllMenuItems()
