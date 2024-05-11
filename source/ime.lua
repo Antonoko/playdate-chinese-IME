@@ -1264,6 +1264,9 @@ STAGE["keyboard"] = function()
         if keyboard_map[cap_select_index].type == "alphabet" then
             if direction == "l" then
                 en_cap_lock_switch()
+            elseif direction == "u" then
+                table.insert(text_area, cursor_pos_index+1, " ")
+                cursor_pos_index += 1
             else
                 if en_cap_lock then
                     table.insert(text_area, cursor_pos_index+1, string.upper(keyboard_map[cap_select_index].name))
@@ -1283,7 +1286,7 @@ STAGE["keyboard"] = function()
             elseif direction == "l" then
                 en_cap_lock_switch()
             elseif direction == "r" then
-                table.insert(text_area, cursor_pos_index+1, " ")
+                table.insert(text_area, cursor_pos_index+1, ".")
                 cursor_pos_index += 1
             end
             SFX.key.sound:play()

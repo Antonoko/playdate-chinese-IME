@@ -25,11 +25,6 @@ local arrow_btn_skip_cnt_sensitivity = 5
 local IMG_ABOUT <const> = gfx.image.new("img/about")
 playdate.setMenuImage(IMG_ABOUT)
 
-local WHITE_MASK_IMG <const> = gfx.image.new("img/white")
-local WHITE_MASK_SPRITE = gfx.sprite.new(WHITE_MASK_IMG)
-WHITE_MASK_SPRITE:setCenter(0,0)
-WHITE_MASK_SPRITE:moveTo(0,0)
-
 local NOTE_TIP <const> = gfx.image.new("img/note_tip")
 local NOTE_TIP_SPRITE = gfx.sprite.new(NOTE_TIP)
 NOTE_TIP_SPRITE:setCenter(0,0)
@@ -287,17 +282,6 @@ function load_state()
 end
 
 -----------------
-
-
-function add_white_under_keyboard(active)
-    WHITE_MASK_SPRITE:setZIndex(500)
-    if active then
-        WHITE_MASK_SPRITE:add()
-    else
-        WHITE_MASK_SPRITE:remove()
-    end
-end
-
 
 local draw_note_list_init = false
 local draw_note_list_size, draw_note_list_gridview, draw_note_list_gridviewSprite, draw_note_list_selection_index
@@ -561,7 +545,6 @@ function main_page_sidebar_option()
     end)
 
     local modeMenuItem, error = note_menu:addMenuItem("Custom Name", function(value)
-        add_white_under_keyboard(true)
         zh_ime:startRunning("自定义标题", "zh", user_custom_name, "zh")
         stage_manager = "edit_custom_name"
     end)
@@ -595,7 +578,6 @@ STAGE["main_screen"] = function()
         stage_manager = "note_details"
     elseif pd.buttonJustPressed(pd.kButtonB) then
         SFX.click.sound:play()
-        add_white_under_keyboard(true)
         editor_mode = "new"
         zh_ime:startRunning("新建笔记", "zh", {}, "zh")
         stage_manager = "note_edit"
@@ -610,7 +592,6 @@ STAGE["note_details"] = function()
 
     if pd.buttonJustPressed(pd.kButtonA) then
         SFX.click.sound:play()
-        add_white_under_keyboard(true)
         editor_mode = "edit"
         zh_ime:startRunning("修改笔记", "zh", user_notes[current_select_note_index].note, "zh")
         stage_manager = "note_edit"
@@ -640,7 +621,6 @@ STAGE["note_edit"] = function()
             table.insert(user_notes, 1, note_to_insert)    
             save_state()
         end
-        add_white_under_keyboard(false)
         draw_note_list_animation_init = false
         draw_note_page_animation_init = false
         draw_note_list_init = false
@@ -658,7 +638,6 @@ STAGE["edit_custom_name"] = function()
             user_custom_name = user_input_text
             save_state()
         end
-        add_white_under_keyboard(false)
         draw_note_list_animation_init = false
         draw_note_page_animation_init = false
         draw_note_list_init = false
