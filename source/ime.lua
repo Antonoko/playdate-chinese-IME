@@ -13,8 +13,6 @@ local zindex_start_offset <const> = 1000
 
 local keyboard_choose = "zh"
 local keyboard_choose_lazy_update = ""
-local en_cap_lock = false
-local en_cap_lock_lazy_update = false
 local cap_selection = "a"
 local cap_selection_lazy_update = ""
 local vowel_selection = "a"
@@ -631,6 +629,22 @@ function shallowCopy(original)
     return copy
 end
 
+function findNextSpaceIndex(tbl, index)
+    if index >= #tbl then
+        return -1
+    end
+    for i = index + 1, #tbl do
+        if tbl[i] == " " then
+            if i > 12 then
+                return -1
+            else
+                return i
+            end
+        end
+    end
+    return -1
+end
+
 --------------------------------------------core
 
 local transform_animation_init = true
@@ -813,18 +827,13 @@ end
 
 
 function draw_keyboard_hint()
-    if (cap_selection ~= cap_selection_lazy_update) or (cap_select_index ~= cap_select_index_lazy_update) or (en_cap_lock ~= en_cap_lock_lazy_update) then
+    if (cap_selection ~= cap_selection_lazy_update) or (cap_select_index ~= cap_select_index_lazy_update) then
         local image = gfx.image.new(43, 55)
 
         gfx.pushContext(image)
             DPAD_HINT_IMG[1]:draw(0, 0)
             if keyboard_choose == "en" or keyboard_choose == "num" then
                 DPAD_HINT_IMG[1]:draw(0, 0)
-                if en_cap_lock then
-                    DPAD_HINT_IMG[9]:draw(0, 0)
-                else
-                    DPAD_HINT_IMG[8]:draw(0, 0)
-                end
                 if keyboard_map[cap_select_index].type == "symbol" then
                     DPAD_HINT_IMG[11]:draw(0, 0)
                 else
@@ -862,7 +871,6 @@ function draw_keyboard_hint()
 
         cap_selection_lazy_update = cap_selection
         cap_select_index_lazy_update = cap_select_index
-        en_cap_lock_lazy_update = en_cap_lock
     end
 end
 
@@ -878,15 +886,6 @@ function choose_cap(cap_name)
                 v.sprite:setImage(CAPS_IMG[v.index])
             end
         end
-    end
-end
-
-
-function en_cap_lock_switch()
-    if en_cap_lock then
-        en_cap_lock = false
-    else
-        en_cap_lock = true
     end
 end
 
@@ -1263,16 +1262,16 @@ STAGE["keyboard"] = function()
     function cap_type_state_switcher_en(direction)
         if keyboard_map[cap_select_index].type == "alphabet" then
             if direction == "l" then
-                en_cap_lock_switch()
+                table.insert(text_area, cursor_pos_index+1, string.upper(keyboard_map[cap_select_index].name))
+                cursor_pos_index += 1
             elseif direction == "u" then
                 table.insert(text_area, cursor_pos_index+1, " ")
                 cursor_pos_index += 1
-            else
-                if en_cap_lock then
-                    table.insert(text_area, cursor_pos_index+1, string.upper(keyboard_map[cap_select_index].name))
-                else
-                    table.insert(text_area, cursor_pos_index+1, string.lower(keyboard_map[cap_select_index].name))
-                end
+            elseif direction == "r" then
+                table.insert(text_area, cursor_pos_index+1, string.lower(keyboard_map[cap_select_index].name))
+                cursor_pos_index += 1
+            elseif direction == "d" then
+                table.insert(text_area, cursor_pos_index+1, ".")
                 cursor_pos_index += 1
             end
             SFX.key.sound:play()
@@ -1284,7 +1283,7 @@ STAGE["keyboard"] = function()
                 vowel_selection = "symbol_en"
                 active_vowel_menu()
             elseif direction == "l" then
-                en_cap_lock_switch()
+                
             elseif direction == "r" then
                 table.insert(text_area, cursor_pos_index+1, ".")
                 cursor_pos_index += 1
