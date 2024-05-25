@@ -537,6 +537,11 @@ local KEYBOARD_CONFIG_LIST <const> = {
         keyboard_layout = KEYBOARD_ZH_LAYOUT,
         caps_sub_sprite_index = 1,
     },
+    dp = {
+        keyboard_map = CAPS_MAP_EN,
+        keyboard_layout = KEYBOARD_EN_LAYOUT,
+        caps_sub_sprite_index = 2,
+    },
     en = {
         keyboard_map = CAPS_MAP_EN,
         keyboard_layout = KEYBOARD_EN_LAYOUT,
@@ -549,6 +554,7 @@ local KEYBOARD_CONFIG_LIST <const> = {
     }
 }
 local VOWEL_LIST_OPTION <const> = json.decodeFile("ime_src/data/zh_vowel.json")
+local DOUBLE_PINYIN_LIST <const> = json.decodeFile("ime_src/data/zh_double_pinyin.json")
 local ZH_WORD_LIST <const> = json.decodeFile("ime_src/data/zh_word.json")
 local FONT = {
     roobert = {
@@ -765,6 +771,8 @@ end
 function switch_to_next_keyboard()
     clean_keyboard()
     if keyboard_choose == "zh" then
+        keyboard_choose = "dp"
+    elseif keyboard_choose == "dp" then
         keyboard_choose = "en"
     elseif keyboard_choose == "en" then
         keyboard_choose = "num"
@@ -1135,6 +1143,7 @@ end
 
 --------------------------------------------stage
 
+local precap = ""
 STAGE["keyboard"] = function()
     switch_keyboard()
 
@@ -1160,6 +1169,13 @@ STAGE["keyboard"] = function()
             cap_type_state_switcher_en("l")
         elseif pd.buttonJustPressed(pd.kButtonRight) then
             cap_type_state_switcher_en("r")
+        end
+    elseif keyboard_choose == "dp" then
+        if pd.buttonJustPressed(pd.kButtonLeft) and #precap == 0 then
+            precap = keyboard_map[cap_select_index].name
+        elseif pd.buttonJustReleased(pd.kButtonLeft) and #precap == 1 then
+            local doublePinyin = precap .. keyboard_map[cap_select_index].name
+            active_zh_word_menu(string.lower(doublePinyin))
         end
     elseif keyboard_choose == "zh" then
         if pd.buttonJustPressed(pd.kButtonUp) then
@@ -1283,6 +1299,15 @@ STAGE["keyboard"] = function()
         end    
     end
 
+    function active_zh_word_menu(doublePinyin)
+        if tableHasKey(DOUBLE_PINYIN_LIST, doublePinyin) then
+            vowel_selection_result = DOUBLE_PINYIN_LIST[doublePinyin]
+            if tableHasKey(ZH_WORD_LIST, vowel_selection_result) then
+                stage_manager = "zh_word_menu"
+            end
+        end
+        precap = ""
+    end
 end
 
 STAGE["cursor_mode"] = function()
