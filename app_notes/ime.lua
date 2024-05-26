@@ -11,12 +11,14 @@ local screenHeight <const> = playdate.display.getHeight()
 
 local zindex_start_offset <const> = 1000
 
-local keyboard_choose = "dp"
+local keyboard_choose = "zh"
 local keyboard_choose_lazy_update = ""
 local cap_selection = "a"
 local cap_selection_lazy_update = ""
 local vowel_selection = "a"
 local vowel_selection_result = "ni"
+local initial = ""
+local initial_lazy_update = ""
 local candidate_words = ""
 local text_area = {}
 local text_area_lazy_update = {"asfiosgk"}
@@ -709,7 +711,7 @@ local KEYBOARD_CONFIG_LIST <const> = {
     dp = {
         keyboard_map = CAPS_MAP_DP,
         keyboard_layout = KEYBOARD_DP_LAYOUT,
-        caps_sub_sprite_index = 3,
+        caps_sub_sprite_index = 4,
     },
     en = {
         keyboard_map = CAPS_MAP_EN,
@@ -988,7 +990,7 @@ end
 
 
 function draw_keyboard_hint()
-    if (cap_selection ~= cap_selection_lazy_update) or (cap_select_index ~= cap_select_index_lazy_update) then
+    if (cap_selection ~= cap_selection_lazy_update) or (cap_select_index ~= cap_select_index_lazy_update) or (initial ~= initial_lazy_update) then
         local image = gfx.image.new(43, 55)
 
         gfx.pushContext(image)
@@ -1029,13 +1031,16 @@ function draw_keyboard_hint()
             end
 
             if keyboard_choose == "dp" then
-                DPAD_HINT_IMG[12]:draw(0, 0)
-                if keyboard_map[cap_select_index].type == "alphabet" then
-                    DPAD_HINT_IMG[5]:draw(0, 0)
-                elseif keyboard_map[cap_select_index].type == "symbol" then
+                if keyboard_map[cap_select_index].type == "symbol" then
                     DPAD_HINT_IMG[6]:draw(0, 0)
                 elseif keyboard_map[cap_select_index].type == "disable" then
                     DPAD_HINT_IMG[7]:draw(0, 0)
+                elseif #initial == 0 then
+                    DPAD_HINT_IMG[12]:draw(0, 0)
+                    DPAD_HINT_IMG[14]:draw(0, 0)
+                elseif #initial == 1 then
+                    DPAD_HINT_IMG[13]:draw(0, 0)
+                    DPAD_HINT_IMG[15]:draw(0, 0)
                 end
             end
         gfx.popContext()
@@ -1043,6 +1048,7 @@ function draw_keyboard_hint()
 
         cap_selection_lazy_update = cap_selection
         cap_select_index_lazy_update = cap_select_index
+        initial_lazy_update = initial
     end
 end
 
@@ -1323,7 +1329,6 @@ end
 
 --------------------------------------------stage
 
-local initial = ""
 STAGE["keyboard"] = function()
     switch_keyboard()
 
@@ -1444,6 +1449,7 @@ STAGE["keyboard"] = function()
     end
 
     function cap_type_state_switcher_dp(operate, direction)
+        draw_keyboard_hint()
         if keyboard_map[cap_select_index].type == "alphabet" then
             if operate == "press" then
                 if #initial == 0 then
