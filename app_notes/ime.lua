@@ -11,7 +11,7 @@ local screenHeight <const> = playdate.display.getHeight()
 
 local zindex_start_offset <const> = 1000
 
-local keyboard_choose = "zh"
+local keyboard_choose = "dp"
 local keyboard_choose_lazy_update = ""
 local cap_selection = "a"
 local cap_selection_lazy_update = ""
@@ -240,6 +240,170 @@ local CAPS_MAP_ZH <const> = {
         index = 26,
         sprite = gfx.sprite.new(CAPS_IMG[26]),
         type = "consonant",
+    },
+    {
+        name = "SYMBOL",
+        index = 29,
+        sprite = gfx.sprite.new(CAPS_IMG[29]),
+        type = "symbol",
+    },
+}
+local CAPS_MAP_DP <const> = {
+    {
+        name = "Q",
+        index = 1,
+        sprite = gfx.sprite.new(CAPS_IMG[1]),
+        type = "alphabet",
+    },
+    {
+        name = "W",
+        index = 2,
+        sprite = gfx.sprite.new(CAPS_IMG[2]),
+        type = "alphabet",
+    },
+    {
+        name = "E",
+        index = 3,
+        sprite = gfx.sprite.new(CAPS_IMG[3]),
+        type = "alphabet",
+    },
+    {
+        name = "R",
+        index = 4,
+        sprite = gfx.sprite.new(CAPS_IMG[4]),
+        type = "alphabet",
+    },
+    {
+        name = "T",
+        index = 5,
+        sprite = gfx.sprite.new(CAPS_IMG[5]),
+        type = "alphabet",
+    },
+    {
+        name = "Y",
+        index = 6,
+        sprite = gfx.sprite.new(CAPS_IMG[6]),
+        type = "alphabet",
+    },
+    {
+        name = "U",
+        index = 7,
+        sprite = gfx.sprite.new(CAPS_IMG[7]),
+        type = "alphabet",
+    },
+    {
+        name = "I",
+        index = 8,
+        sprite = gfx.sprite.new(CAPS_IMG[8]),
+        type = "alphabet",
+    },
+    {
+        name = "O",
+        index = 9,
+        sprite = gfx.sprite.new(CAPS_IMG[9]),
+        type = "alphabet",
+    },
+    {
+        name = "P",
+        index = 10,
+        sprite = gfx.sprite.new(CAPS_IMG[10]),
+        type = "alphabet",
+    },
+    {
+        name = "A",
+        index = 11,
+        sprite = gfx.sprite.new(CAPS_IMG[11]),
+        type = "alphabet",
+    },
+    {
+        name = "S",
+        index = 12,
+        sprite = gfx.sprite.new(CAPS_IMG[12]),
+        type = "alphabet",
+    },
+    {
+        name = "D",
+        index = 13,
+        sprite = gfx.sprite.new(CAPS_IMG[13]),
+        type = "alphabet",
+    },
+    {
+        name = "F",
+        index = 14,
+        sprite = gfx.sprite.new(CAPS_IMG[14]),
+        type = "alphabet",
+    },
+    {
+        name = "G",
+        index = 15,
+        sprite = gfx.sprite.new(CAPS_IMG[15]),
+        type = "alphabet",
+    },
+    {
+        name = "H",
+        index = 16,
+        sprite = gfx.sprite.new(CAPS_IMG[16]),
+        type = "alphabet",
+    },
+    {
+        name = "J",
+        index = 17,
+        sprite = gfx.sprite.new(CAPS_IMG[17]),
+        type = "alphabet",
+    },
+    {
+        name = "K",
+        index = 18,
+        sprite = gfx.sprite.new(CAPS_IMG[18]),
+        type = "alphabet",
+    },
+    {
+        name = "L",
+        index = 19,
+        sprite = gfx.sprite.new(CAPS_IMG[19]),
+        type = "alphabet",
+    },
+    {
+        name = "Z",
+        index = 20,
+        sprite = gfx.sprite.new(CAPS_IMG[20]),
+        type = "alphabet",
+    },
+    {
+        name = "X",
+        index = 21,
+        sprite = gfx.sprite.new(CAPS_IMG[21]),
+        type = "alphabet",
+    },
+    {
+        name = "C",
+        index = 22,
+        sprite = gfx.sprite.new(CAPS_IMG[22]),
+        type = "alphabet",
+    },
+    {
+        name = "V",
+        index = 23,
+        sprite = gfx.sprite.new(CAPS_IMG[23]),
+        type = "alphabet",
+    },
+    {
+        name = "B",
+        index = 24,
+        sprite = gfx.sprite.new(CAPS_IMG[24]),
+        type = "alphabet",
+    },
+    {
+        name = "N",
+        index = 25,
+        sprite = gfx.sprite.new(CAPS_IMG[25]),
+        type = "alphabet",
+    },
+    {
+        name = "M",
+        index = 26,
+        sprite = gfx.sprite.new(CAPS_IMG[26]),
+        type = "alphabet",
     },
     {
         name = "SYMBOL",
@@ -522,6 +686,11 @@ local KEYBOARD_ZH_LAYOUT <const> = {
     10,
     10,
 }
+local KEYBOARD_DP_LAYOUT <const> = {
+    10,
+    9,
+    8,
+}
 local KEYBOARD_EN_LAYOUT <const> = {
     10,
     9,
@@ -535,22 +704,22 @@ local KEYBOARD_CONFIG_LIST <const> = {
     zh = {
         keyboard_map = CAPS_MAP_ZH,
         keyboard_layout = KEYBOARD_ZH_LAYOUT,
-        caps_sub_sprite_index = 1,
+        caps_sub_sprite_index = 3,
     },
     dp = {
-        keyboard_map = CAPS_MAP_EN,
-        keyboard_layout = KEYBOARD_EN_LAYOUT,
-        caps_sub_sprite_index = 2,
+        keyboard_map = CAPS_MAP_DP,
+        keyboard_layout = KEYBOARD_DP_LAYOUT,
+        caps_sub_sprite_index = 3,
     },
     en = {
         keyboard_map = CAPS_MAP_EN,
         keyboard_layout = KEYBOARD_EN_LAYOUT,
-        caps_sub_sprite_index = 2,
+        caps_sub_sprite_index = 1,
     },
     num = {
         keyboard_map = CAPS_MAP_NUM,
         keyboard_layout = KEYBOARD_NUM_LAYOUT,
-        caps_sub_sprite_index = 3,
+        caps_sub_sprite_index = 2,
     }
 }
 local VOWEL_LIST_OPTION <const> = json.decodeFile("ime_src/data/zh_vowel.json")
@@ -858,6 +1027,17 @@ function draw_keyboard_hint()
                     DPAD_HINT_IMG[7]:draw(0, 0)
                 end
             end
+
+            if keyboard_choose == "dp" then
+                DPAD_HINT_IMG[12]:draw(0, 0)
+                if keyboard_map[cap_select_index].type == "alphabet" then
+                    DPAD_HINT_IMG[5]:draw(0, 0)
+                elseif keyboard_map[cap_select_index].type == "symbol" then
+                    DPAD_HINT_IMG[6]:draw(0, 0)
+                elseif keyboard_map[cap_select_index].type == "disable" then
+                    DPAD_HINT_IMG[7]:draw(0, 0)
+                end
+            end
         gfx.popContext()
         dpad_hint_sprite:setImage(image)
 
@@ -1143,7 +1323,7 @@ end
 
 --------------------------------------------stage
 
-local precap = ""
+local initial = ""
 STAGE["keyboard"] = function()
     switch_keyboard()
 
@@ -1171,11 +1351,16 @@ STAGE["keyboard"] = function()
             cap_type_state_switcher_en("r")
         end
     elseif keyboard_choose == "dp" then
-        if pd.buttonJustPressed(pd.kButtonLeft) and #precap == 0 then
-            precap = keyboard_map[cap_select_index].name
-        elseif pd.buttonJustReleased(pd.kButtonLeft) and #precap == 1 then
-            local doublePinyin = precap .. keyboard_map[cap_select_index].name
-            active_zh_word_menu(string.lower(doublePinyin))
+        if pd.buttonJustPressed(pd.kButtonUp) then
+            cap_type_state_switcher_dp("press", "u")
+        elseif pd.buttonJustPressed(pd.kButtonDown) then
+            cap_type_state_switcher_dp("press", "d")
+        elseif pd.buttonJustPressed(pd.kButtonLeft) then
+            cap_type_state_switcher_dp("press", "l")
+        elseif pd.buttonJustPressed(pd.kButtonRight) then
+            cap_type_state_switcher_dp("press", "r")
+        elseif pd.buttonJustReleased(pd.kButtonLeft) then
+            cap_type_state_switcher_dp("release", "l")
         end
     elseif keyboard_choose == "zh" then
         if pd.buttonJustPressed(pd.kButtonUp) then
@@ -1258,6 +1443,43 @@ STAGE["keyboard"] = function()
         end
     end
 
+    function cap_type_state_switcher_dp(operate, direction)
+        if keyboard_map[cap_select_index].type == "alphabet" then
+            if operate == "press" then
+                if #initial == 0 then
+                    initial = keyboard_map[cap_select_index].name
+                end
+                SFX.key.sound:play()
+            elseif operate == "release" then
+                if #initial == 1 then
+                    active_zh_word_menu(string.lower(initial .. keyboard_map[cap_select_index].name))
+                    initial = ""
+                    SFX.key.sound:play()
+                end
+            end
+        elseif keyboard_map[cap_select_index].type == "symbol" then
+            if operate == "press" then
+                if direction == "u" then
+                    table.insert(text_area, cursor_pos_index + 1, "，")
+                    cursor_pos_index += 1
+                elseif direction == "d" then
+                    vowel_selection = "symbol"
+                    active_vowel_menu()
+                elseif direction == "l" then
+                    vowel_selection = "sentence"
+                    active_vowel_menu()
+                elseif direction == "r" then
+                    table.insert(text_area, cursor_pos_index + 1, "。")
+                    cursor_pos_index += 1
+                end
+                SFX.key.sound:play()
+            end
+        elseif keyboard_map[cap_select_index].type == "disable" then
+            if operate == "press" then
+                SFX.denial.sound:play()
+            end
+        end
+    end
 
     function cap_type_state_switcher_en(direction)
         if keyboard_map[cap_select_index].type == "alphabet" then
@@ -1306,7 +1528,6 @@ STAGE["keyboard"] = function()
                 stage_manager = "zh_word_menu"
             end
         end
-        precap = ""
     end
 end
 
